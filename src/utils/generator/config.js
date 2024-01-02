@@ -289,7 +289,7 @@ export const selectComponents = [
     'is-range': true,
     'range-separator': '至',
     'start-placeholder': '开始时间',
-    'end-placeholder': '结束时间',
+    'end-placeholder': '截止时间',
     format: 'HH:mm:ss',
     'value-format': 'HH:mm:ss',
     regList: [],

@@ -75,6 +75,19 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/quadrant/task',
+    component: Layout,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: 'quadrant',
+        component: () => import('@/views/jobs/quadrant'),
+        name: 'Quadrant',
+        meta: { title: '四象限', icon: 'dashboard', affix: true }
+      }
+    ]
+  },
+  {
     path: '/user',
     component: Layout,
     hidden: true,
@@ -103,20 +116,6 @@ export const dynamicRoutes = [
         component: () => import('@/views/system/user/authRole'),
         name: 'AuthRole',
         meta: { title: '分配角色', activeMenu: '/system/user' }
-      }
-    ]
-  },
-  {
-    path: '/system/role-auth',
-    component: Layout,
-    hidden: true,
-    permissions: ['system:role:edit'],
-    children: [
-      {
-        path: 'user/:roleId(\\d+)',
-        component: () => import('@/views/system/role/authUser'),
-        name: 'AuthUser',
-        meta: { title: '分配用户', activeMenu: '/system/role' }
       }
     ]
   },

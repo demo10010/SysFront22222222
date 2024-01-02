@@ -53,7 +53,7 @@
       </el-table-column>
 
       <el-table-column label="开始时间" align="center" width="100" prop="assignStartTime" :show-overflow-tooltip="true" />
-      <el-table-column label="结束时间" align="center" width="100" prop="assignEndTime" :show-overflow-tooltip="true" />
+      <el-table-column label="截止时间" align="center" width="100" prop="assignEndTime" :show-overflow-tooltip="true" />
       <el-table-column label="优先级" align="center" prop="priority" type="index" width="120">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.task_priority_type" :value="scope.row.priority"
