@@ -43,14 +43,15 @@
       style="margin-bottom: 16px;" v-hasRole="['admin']">新建任务</el-button>
     <el-table v-loading="loading" :data="jobLogList">
       <el-table-column label="序号" width="50" align="center" type="index" />
-      <el-table-column label="任务名称" align="center" width="240" prop="taskName" :show-overflow-tooltip="true" />
-      <el-table-column label="任务详情" align="center" width="450" prop="taskDetail" >
+      <el-table-column label="任务名称" align="center" width="200" prop="taskName" :show-overflow-tooltip="true" />
+      <el-table-column label="任务详情" align="center" width="200" prop="taskDetail" :show-overflow-tooltip="true" />
+      <!-- <el-table-column label="任务详情" align="center" width="450" prop="taskDetail" >
         <template #default="{row}">
           <el-tooltip :content="row.taskDetail" to>
             <p class="taskDetailStyle">{{row.taskDetail}}</p>
           </el-tooltip>
         </template>
-      </el-table-column>
+      </el-table-column> -->
 
       <el-table-column label="开始时间" align="center" width="100" prop="assignStartTime" :show-overflow-tooltip="true" />
       <el-table-column label="截止时间" align="center" width="100" prop="assignEndTime" :show-overflow-tooltip="true" />

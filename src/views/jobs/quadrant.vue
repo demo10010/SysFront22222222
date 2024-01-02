@@ -19,13 +19,12 @@
           </el-form-item>
 
           <el-form-item class="form-action">
-            <el-button type="primary" icon="el-icon-search" @click="getListData">搜索</el-button>
+            <el-button type="primary" icon="el-icon-search" @click="searching = true">搜索</el-button>
           </el-form-item>
         </el-form>
       </el-col>
       <el-col :span="12" v-for="item in dict.type.task_priority_type" :key="item.value" :style="cardHeight">
-        <jobCard :currentType="item.value" :currentLabel="item.label" :searchParams="queryParams"
-          :getListData="getListData" />
+        <jobCard :currentType="item.value" :currentLabel="item.label" :getListData="getListData" :searching="searching" />
       </el-col>
     </el-row>
   </div>
@@ -39,17 +38,11 @@ import { listTable } from "@/api/task/all";
 export default {
   dicts: ['task_priority_type', 'task_duration_type'],
   components: { jobCard },
-  props: {
-    currentType: {
-
-      type: String,
-      default: ''
-    }
-  },
   data() {
     return {
       list: [],
       total: 0,
+      searching: false,
       departmentList: ['单位', '部门', '科室'],
       queryParams: {
         currentStatus: [],
@@ -64,7 +57,8 @@ export default {
   },
   methods: {
     async getListData(query) {
-      return listTable({ ...this.queryParams, ...query });
+      const self = this;
+      return listTable({ ...this.queryParams, ...query }).finally(() => self.searching = false);
     }
   }
 };

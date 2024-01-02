@@ -38,9 +38,9 @@ export default {
       type: String,
       default: ''
     },
-    searchParams: {
-      type: Object,
-      default: null
+    searching: {
+      type: Boolean,
+      default: false
     },
     getListData: {
       type: Function,
@@ -52,6 +52,7 @@ export default {
       loading: false,
       list: [],
       total: 0,
+      needSearching: this.searching,
       queryParams: {
         pageNum: 1,
         currentStatus: "进行中",
@@ -64,14 +65,13 @@ export default {
   },
   methods: {
     async getList() {
+      const self = this;
       this.loading = true;
-      const { rows, total } = await this.getListData({ ...this.queryParams, priorityList: [this.currentType] });
+      const { rows, total } = await this.getListData({ ...this.queryParams, priorityList: [this.currentType] })
+        .finally(function () { self.needSearching = false });
       this.list = rows;
       this.total = total;
       this.loading = false;
-    },
-    getTaskDetailContent(row) {
-      return row.taskDetail;
     },
     getJobPercent(row) {
       const { completeTime, assignStartTime, assignEndTime } = row;
@@ -89,6 +89,14 @@ export default {
       row.taskPercent = validPercent;
 
       return validPercent;
+    }
+  },
+  watch: {
+    needSearching(newValue) {
+      newValue && this.getList();
+    },
+    searching(newValue) {
+      this.needSearching = newValue;
     }
   }
 };
