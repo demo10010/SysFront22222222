@@ -7,7 +7,7 @@
       </el-tag>
     </div>
     <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px">
-      <el-form-item label="部门" prop="department">
+      <el-form-item label="部门" prop="department" v-hasRole="['admin', 'leader']">
         <treeselect v-model="queryParams.deptNameId" :multiple="true" :options="departmentList" :show-count="true"
           placeholder="请选择部门" style="width: 230px;line-height: 18px;" />
       </el-form-item>
@@ -46,7 +46,7 @@
       <el-table-column label="任务名称" align="center" width="240" prop="taskName" :show-overflow-tooltip="true" />
       <el-table-column label="任务详情" align="center" width="450" prop="taskDetail" >
         <template #default="{row}">
-          <el-tooltip :content="row.taskDetail">
+          <el-tooltip :content="row.taskDetail" to>
             <p class="taskDetailStyle">{{row.taskDetail}}</p>
           </el-tooltip>
         </template>
