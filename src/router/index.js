@@ -62,25 +62,31 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/quadrant/task',
+    // path: '/quadrant/task',
+    path: '',
     component: Layout,
-    redirect: 'noredirect',
+    // redirect: 'noredirect',
+    redirect: 'index',
     children: [
       {
-        path: 'quadrant',
+        // path: 'quadrant',
+        path: 'index',
         component: () => import('@/views/jobs/quadrant'),
         name: 'Quadrant',
-        meta: { title: '四象限', icon: 'dashboard', affix: true }
+        meta: { title: '今日任务', icon: 'dashboard', affix: true }
       }
     ]
   },
   {
+    // path: '',
     path: '',
     component: Layout,
-    redirect: 'index',
+    // redirect: 'index',
+    redirect: 'noredirect',
     children: [
       {
-        path: 'index',
+        // path: 'index',
+        path: 'quadrant',
         component: () => import('@/views/index'),
         name: 'Index',
         meta: { title: '任务列表', icon: 'table', affix: true }

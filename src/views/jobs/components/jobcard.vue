@@ -1,19 +1,31 @@
 <template>
-  <el-card style="margin:10px;height: calc(100% - 20px);overflow: auto;">
-    <el-tag style="margin-bottom: 16px;" effect="dark">{{ currentLabel }}</el-tag>
+  <!-- <el-card :style="{ 'background-color': colorMap[currentType] }" class="job-card"> -->
+  <el-card class="job-card">
+    <el-tag style="margin-bottom: 16px;color: #000000;"  :style="{ 'background-color': colorMap[currentType] }"  type="info">{{ currentLabel }}</el-tag>
     <el-table v-loading="loading" :data="list" style="width: 100%">
       <el-table-column label="序号" width="50" align="center" type="index" />
-      <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true">
+      <!-- <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true">
         <template slot-scope="scope">
           <el-button type="text" @click="showDetail(scope.row)">{{ scope.row.taskName }}</el-button>
         </template>
       </el-table-column>
-      <el-table-column label="责任人" align="center" prop="responsiblePersonName" :show-overflow-tooltip="true" />
-      <el-table-column label="截止时间" align="center" prop="assignEndTime" :show-overflow-tooltip="true" />
+
       <el-table-column label="耗时百分比" align="left" prop="percent">
         <template slot-scope="scope">
           <el-progress :percentage="getJobPercent(scope.row)"
             :status="scope.row.completeTime ? 'success' : (scope.row.taskPercent > 100 ? 'exception' : undefined)"></el-progress>
+        </template>
+      </el-table-column> -->
+      <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
+      <!-- <el-table-column label="任务详情" align="center" prop="actions" :show-overflow-tooltip="true"> -->
+      <el-table-column label="任务详情" align="center" prop="taskDetail" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          <el-button type="text" @click="showDetail(scope.row)">查看详情</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" prop="actionsComplete">
+        <template slot-scope="scope">
+          <thumbUp :finish="() => confirmCompleted(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -24,13 +36,17 @@
       :defaultFormData="defaultJobEditData" :taskId='selectRow.id' />
   </el-card>
 </template>
+
+
 <script>
 
 import createJob from '@/views/jobs/createJob';
-import { getTaskDetailsById } from "@/api/task/all";
+import thumbUp from '@/views/jobs/components/thumbUp.vue';
+import { getTaskDetailsById,addTaskComplete } from "@/api/task/all";
+
 
 export default {
-  components: { createJob },
+  components: { createJob, thumbUp },
   props: {
     departmentList: {
       type: Array,
@@ -63,6 +79,7 @@ export default {
   },
   data() {
     return {
+      thumbup: thumbUp,
       loading: false,
       list: [],
       total: 0,
@@ -73,6 +90,14 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10
+      },
+      colorMap: {
+        1: "#409eFF",
+        2: "#ADD5FF",
+        3: "#E3F1FF",
+        // 1: "#FF9797",
+        // 2: "#FFB1B1",
+        // 3: "#FFE5E5"
       }
     }
   },
@@ -80,6 +105,15 @@ export default {
     this.getList();
   },
   methods: {
+    async confirmCompleted(row) {
+      const self = this;
+      const date = new Date();
+      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      await addTaskComplete({ id: row.id, completeTime: formattedDate });
+      setTimeout(() => {
+        self.getList();
+      }, 1000);
+    },
     async showDetail(row) {
       const res = await getTaskDetailsById(row.id);
       const { taskName, taskDetail, responsiblePersonId, assignStartTime,
@@ -95,7 +129,6 @@ export default {
         jobType: taskDurationType,
         jobInstitution: deptNameId,
       }
-      console.log(this.defaultJobEditData,"this.defaultJobEditData");
       this.visible = true;
       this.selectRow = row;
     },
@@ -140,3 +173,23 @@ export default {
   }
 };
 </script>
+
+
+<style scoped>
+.job-card {
+  margin: 4px;
+  height: calc(100% - 20px);
+  overflow: auto;
+  border: 3px solid transparent;
+}
+
+.like-animation-enter-active,
+.like-animation-leave-active {
+  transition: transform 0.5s;
+}
+
+.like-animation-enter,
+.like-animation-leave-to {
+  transform: scale(0);
+}
+</style>

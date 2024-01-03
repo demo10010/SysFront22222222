@@ -5,19 +5,11 @@
         <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"
           style="margin-left: 10px;margin-top: 16px;">
           <el-form-item label="任务部门" prop="department" v-hasRole="['admin', 'leader']">
-            <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择任务部门">
+            <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择机构层级">
               <el-option v-for="( item, index ) in  departmentList.map(x => ({ label: x, value: x }))"
                 :key="item.value + index + 'level'" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
-
-          <el-form-item label="任务级别" prop="jobLevel">
-            <el-select v-model="queryParams.currentStatus" style="width: 200px" placeholder="请选择任务级别" :multiple="true">
-              <el-option v-for="( item, index ) in  dict.type.task_duration_type" :key="item.value + index + 'level'"
-                :label="item.label" :value="item.value" />
-            </el-select>
-          </el-form-item>
-
           <el-form-item class="form-action">
             <el-button type="primary" icon="el-icon-search" @click="searching = true">搜索</el-button>
           </el-form-item>
@@ -51,8 +43,16 @@ export default {
       searching: false,
       departmentList: ['单位', '部门', '科室'],
       queryParams: {
-        currentStatus: [],
+        currentStatus: ['进行中'],
+        taskDurationTypeList: ['日任务'],
         deptLevel: []
+      },colorMap: {
+        // 1: "#409eff",
+        // 2: "#ADD5FF",
+        // 3: "#E3F1FF",
+        1: "#FF9797",
+        2: "#FFB1B1",
+        3: "#FFE5E5"
       }
     }
   },
