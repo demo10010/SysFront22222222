@@ -62,19 +62,6 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '',
-    component: Layout,
-    redirect: 'index',
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/index'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
-      }
-    ]
-  },
-  {
     path: '/quadrant/task',
     component: Layout,
     redirect: 'noredirect',
@@ -84,6 +71,19 @@ export const constantRoutes = [
         component: () => import('@/views/jobs/quadrant'),
         name: 'Quadrant',
         meta: { title: '四象限', icon: 'dashboard', affix: true }
+      }
+    ]
+  },
+  {
+    path: '',
+    component: Layout,
+    redirect: 'index',
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/index'),
+        name: 'Index',
+        meta: { title: '任务列表', icon: 'dashboard', affix: true }
       }
     ]
   },

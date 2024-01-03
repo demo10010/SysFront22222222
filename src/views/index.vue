@@ -43,8 +43,8 @@
       style="margin-bottom: 16px;" v-hasRole="['admin']">新建任务</el-button>
     <el-table v-loading="loading" :data="jobLogList">
       <el-table-column label="序号" width="50" align="center" type="index" />
-      <el-table-column label="任务名称" align="center" width="200" prop="taskName" :show-overflow-tooltip="true" />
-      <el-table-column label="任务详情" align="center" width="200" prop="taskDetail" :show-overflow-tooltip="true" />
+      <el-table-column label="任务名称" align="center" width="120" prop="taskName" :show-overflow-tooltip="true" />
+      <el-table-column label="任务详情" align="center" width="180" prop="taskDetail" :show-overflow-tooltip="true" />
       <!-- <el-table-column label="任务详情" align="center" width="450" prop="taskDetail" >
         <template #default="{row}">
           <el-tooltip :content="row.taskDetail" to>

@@ -3,15 +3,9 @@
     <el-tag style="margin-bottom: 16px;" effect="dark">{{ currentLabel }}</el-tag>
     <el-table v-loading="loading" :data="list" style="width: 100%">
       <el-table-column label="序号" width="50" align="center" type="index" />
-      <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
-      <el-table-column label="任务详情">
-        <template #default="scope">
-            <el-popover trigger="hover" placement="top">
-              <div v-html="scope.row.taskDetail"></div>
-              <template #reference>
-                  <el-button size="small">查看</el-button>
-              </template>
-            </el-popover>
+      <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          <el-button type="text" @click="showDetail(scope.row)">{{ scope.row.taskName }}</el-button>
         </template>
       </el-table-column>
       <el-table-column label="责任人" align="center" prop="responsiblePersonName" :show-overflow-tooltip="true" />
@@ -25,11 +19,31 @@
     </el-table>
     <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
       @pagination="getList" />
+    <create-job :visible="visible" :onCancel="showDetailCancel" :jobInstitutionOptions="departmentList"
+      :jobTypeOptions="taskDurationList" :jobPriorityOptions="taskPriorityList" :isDetail="true" :isEdit="true"
+      :defaultFormData="defaultJobEditData" :taskId='selectRow.id' />
   </el-card>
 </template>
 <script>
+
+import createJob from '@/views/jobs/createJob';
+import { getTaskDetailsById } from "@/api/task/all";
+
 export default {
+  components: { createJob },
   props: {
+    departmentList: {
+      type: Array,
+      default: new Array([])
+    },
+    taskDurationList: {
+      type: Array,
+      default: new Array([])
+    },
+    taskPriorityList: {
+      type: Array,
+      default: new Array([])
+    },
     currentType: {
       type: String,
       default: ''
@@ -52,10 +66,12 @@ export default {
       loading: false,
       list: [],
       total: 0,
+      visible: false,
+      selectRow: {},
+      defaultJobEditData: {},
       needSearching: this.searching,
       queryParams: {
         pageNum: 1,
-        currentStatus: "进行中",
         pageSize: 10
       }
     }
@@ -64,6 +80,29 @@ export default {
     this.getList();
   },
   methods: {
+    async showDetail(row) {
+      const res = await getTaskDetailsById(row.id);
+      const { taskName, taskDetail, responsiblePersonId, assignStartTime,
+        assignEndTime, priority, taskDurationType, deptNameId } = res.data;
+
+      this.defaultJobEditData = {
+        jobName: taskName,
+        jobContent: taskDetail,
+        responsible: responsiblePersonId,
+        jobStartDate: assignStartTime,
+        jobEndDate: assignEndTime,
+        jobPriority: String(priority),
+        jobType: taskDurationType,
+        jobInstitution: deptNameId,
+      }
+      console.log(this.defaultJobEditData,"this.defaultJobEditData");
+      this.visible = true;
+      this.selectRow = row;
+    },
+    showDetailCancel() {
+      this.visible = false;
+      this.selectRow = {};
+    },
     async getList() {
       const self = this;
       this.loading = true;

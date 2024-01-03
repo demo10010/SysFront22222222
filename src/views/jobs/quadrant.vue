@@ -5,7 +5,7 @@
         <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"
           style="margin-left: 10px;margin-top: 16px;">
           <el-form-item label="任务部门" prop="department" v-hasRole="['admin', 'leader']">
-            <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择任务部门" >
+            <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择任务部门">
               <el-option v-for="( item, index ) in  departmentList.map(x => ({ label: x, value: x }))"
                 :key="item.value + index + 'level'" :label="item.label" :value="item.value" />
             </el-select>
@@ -24,7 +24,9 @@
         </el-form>
       </el-col>
       <el-col :span="12" v-for="item in dict.type.task_priority_type" :key="item.value" :style="cardHeight">
-        <jobCard :currentType="item.value" :currentLabel="item.label" :getListData="getListData" :searching="searching" />
+        <jobCard :currentType="item.value" :currentLabel="item.label" :getListData="getListData" :searching="searching"
+          :departmentList="departmentAllList" :taskDurationList="dict.type.task_duration_type"
+          :taskPriorityList="dict.type.task_priority_type" />
       </el-col>
     </el-row>
   </div>
@@ -34,6 +36,9 @@
 
 import jobCard from '@/views/jobs/components/jobcard';
 import { listTable } from "@/api/task/all";
+import { deptTreeSelect } from "@/api/system/user";
+import auth from '@/plugins/auth';
+
 
 export default {
   dicts: ['task_priority_type', 'task_duration_type'],
@@ -42,12 +47,18 @@ export default {
     return {
       list: [],
       total: 0,
+      departmentAllList: [],
       searching: false,
       departmentList: ['单位', '部门', '科室'],
       queryParams: {
         currentStatus: [],
         deptLevel: []
       }
+    }
+  },
+  mounted: function () {
+    if (auth.hasRoleOr(['admin', 'leader'])) {
+      this.getDeptTree();
     }
   },
   computed: {
@@ -59,7 +70,12 @@ export default {
     async getListData(query) {
       const self = this;
       return listTable({ ...this.queryParams, ...query }).finally(() => self.searching = false);
-    }
+    },
+    getDeptTree() {
+      deptTreeSelect().then(response => {
+        this.departmentAllList = response.data;
+      });
+    },
   }
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
-  <el-dialog :visible="visible" :title="isEdit ? '编辑任务' : '创建任务'" :close-on-click-modal="false" append-to-body
-    :show-close="false" :close-on-press-escape="false">
+  <el-dialog :visible="visible" :title="getTitle()" :close-on-click-modal="false" append-to-body :show-close="isDetail"
+    :close-on-press-escape="false" @close="onClose">
     <el-form ref="createJobForm" :model="formData" :rules="rules" size="medium" label-width="120px">
       <el-form-item label="任务名称" prop="jobName">
         <el-input v-model="formData.jobName" placeholder="请输入任务名称" clearable :style="{ width: '100%' }" maxlength="200">
@@ -43,7 +43,7 @@
       </el-form-item>
 
     </el-form>
-    <div slot="footer">
+    <div slot="footer" v-if="!isDetail">
       <el-button @click="onClose">取消</el-button>
       <el-button type="primary" @click="handleConfirm">确定</el-button>
     </div>
@@ -60,7 +60,8 @@ import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
   components: { Treeselect },
-  props: ['visible', 'taskId', 'isEdit', 'onCancel', 'onSubmit', 'jobPriorityOptions', 'jobInstitutionOptions', 'jobTypeOptions', 'defaultFormData'],
+  props: ['visible', 'taskId', 'isEdit', 'onCancel', 'onSubmit', 'jobPriorityOptions', 'jobInstitutionOptions', 'isDetail',
+    'jobTypeOptions', 'defaultFormData'],
   created() {
   },
   data() {
@@ -121,6 +122,11 @@ export default {
     }
   },
   methods: {
+    getTitle() {
+      if (this.isDetail) return '查看任务';
+      if (this.isEdit) return '编辑任务';
+      return '创建任务';
+    },
     handleJobInstitution() {
       this.formData.responsible = null;
     },
@@ -138,6 +144,7 @@ export default {
       });
     },
     onClose() {
+      debugger;
       this.resetForm("createJobForm");
       this.onCancel();
     },
@@ -145,7 +152,6 @@ export default {
       const self = this;
       this.$refs['createJobForm'].validate(async valid => {
         if (!valid) return;
-        console.log(this.formData, "valid formData");
         const { jobName, jobContent, jobInstitution, jobStartDate, jobEndDate, responsible, jobPriority, jobType } = this.formData;
         const data = {
           taskName: jobName,
@@ -175,6 +181,7 @@ export default {
     visible(newValue) {
       const self = this;
       if (newValue && self.isEdit) {
+        debugger;
         setTimeout(function () {
           Object.assign(self.formData, self.defaultFormData);
         })
