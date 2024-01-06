@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 10px;">
+  <div style="padding: 10px;background-color: rgba(11, 24, 202, 0.1);">
     <el-row>
       <el-col :span="24">
         <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"

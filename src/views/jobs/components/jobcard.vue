@@ -1,8 +1,9 @@
 <template>
   <!-- <el-card :style="{ 'background-color': colorMap[currentType] }" class="job-card"> -->
-  <el-card class="job-card">
-    <el-tag style="margin-bottom: 16px;color: #000000;"  :style="{ 'background-color': colorMap[currentType] }"  type="info">{{ currentLabel }}</el-tag>
-    <el-table v-loading="loading" :data="list" style="width: 100%">
+  <el-card class="job-card" :class="classMap[currentType]">
+    <el-tag style="margin-bottom: 10px;color: black;"  :style="{ 'background-color': colorMap[currentType] }" type="info">{{ currentLabel }}</el-tag>
+    <!-- <el-table class="job-card-tb" :stripe="true" v-loading="loading" :data="list" style="width: 100%;" :height="tableHeight"> -->
+    <el-table class="job-card-tb" v-loading="loading" :data="list" style="width: 100%;" :height="tableHeight">
       <el-table-column label="序号" width="50" align="center" type="index" />
       <!-- <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true">
         <template slot-scope="scope">
@@ -16,9 +17,9 @@
             :status="scope.row.completeTime ? 'success' : (scope.row.taskPercent > 100 ? 'exception' : undefined)"></el-progress>
         </template>
       </el-table-column> -->
-      <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
+      <el-table-column label="任务名称" width="400" align="center" prop="taskName" :show-overflow-tooltip="true" />
       <!-- <el-table-column label="任务详情" align="center" prop="actions" :show-overflow-tooltip="true"> -->
-      <el-table-column label="任务详情" align="center" prop="taskDetail" :show-overflow-tooltip="true">
+      <el-table-column label="任务详情" width="100" align="center" prop="taskDetail" :show-overflow-tooltip="true">
         <template slot-scope="scope">
           <el-button type="text" @click="showDetail(scope.row)">查看详情</el-button>
         </template>
@@ -29,8 +30,8 @@
         </template>
       </el-table-column>
     </el-table>
-    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
-      @pagination="getList" />
+    <!-- <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
+      @pagination="getList" />  -->
     <create-job :visible="visible" :onCancel="showDetailCancel" :jobInstitutionOptions="departmentList"
       :jobTypeOptions="taskDurationList" :jobPriorityOptions="taskPriorityList" :isDetail="true" :isEdit="true"
       :defaultFormData="defaultJobEditData" :taskId='selectRow.id' />
@@ -81,6 +82,7 @@ export default {
     return {
       thumbup: thumbUp,
       loading: false,
+      tableHeight: (window.innerHeight - 400)/2,
       list: [],
       total: 0,
       visible: false,
@@ -89,15 +91,22 @@ export default {
       needSearching: this.searching,
       queryParams: {
         pageNum: 1,
-        pageSize: 10
+        pageSize: 99999
       },
       colorMap: {
         1: "#409eFF",
         2: "#ADD5FF",
-        3: "#E3F1FF",
+        3: "#ADD5FF",
+        4: "#E3F1FF",
         // 1: "#FF9797",
         // 2: "#FFB1B1",
         // 3: "#FFE5E5"
+      },
+      classMap: {
+        1: "one",
+        2: "two",
+        3: "three",
+        4: "four",
       }
     }
   },
@@ -177,10 +186,66 @@ export default {
 
 <style scoped>
 .job-card {
-  margin: 4px;
+  margin: 10px;
   height: calc(100% - 20px);
   overflow: auto;
   border: 3px solid transparent;
+  .el-table {
+      th {
+        padding: 2px ;
+      }
+      td {
+        padding: 2px ;
+      }
+  } 
+}
+.one {
+  background: radial-gradient(circle at 10% 20%, rgb(239, 246, 249) 0%, rgb(206, 239, 253) 90%);
+  .el-table {
+    background: linear-gradient(#85c0f7,#00f2fe);
+    th {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+    td {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+  }
+}
+.two {
+  background: radial-gradient(circle at 10% 20%, rgb(239, 246, 249) 0%, rgb(206, 239, 253) 90%);
+  .el-table {
+    background: linear-gradient(#85c0f7,#00f2fe);
+    th {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+    td {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+  }
+}
+.three {
+  background: radial-gradient(circle at 10% 20%, rgb(239, 246, 249) 0%, rgb(206, 239, 253) 90%);
+  .el-table {
+    background: linear-gradient(#85c0f7,#00f2fe);
+    th {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+    td {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+  }
+}
+.four {
+  background: radial-gradient(circle at 10% 20%, rgb(239, 246, 249) 0%, rgb(206, 239, 253) 90%);
+  .el-table {
+    background: linear-gradient(#85c0f7,#00f2fe);
+    th {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+    td {
+      background: linear-gradient(#57cde4,#ACE0F8);
+    }
+  }
 }
 
 .like-animation-enter-active,
@@ -192,4 +257,5 @@ export default {
 .like-animation-leave-to {
   transform: scale(0);
 }
+
 </style>
