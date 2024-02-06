@@ -4,7 +4,7 @@
       <el-col :span="24">
         <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"
           style="margin-left: 10px;margin-top: 16px;">
-          <el-form-item label="任务部门" prop="department" v-hasRole="['admin', 'leader']">
+          <el-form-item label="机构层级" prop="department" v-hasRole="['admin', 'leader']">
             <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择机构层级">
               <el-option v-for="( item, index ) in  departmentList.map(x => ({ label: x, value: x }))"
                 :key="item.value + index + 'level'" :label="item.label" :value="item.value" />

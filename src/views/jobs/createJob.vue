@@ -29,8 +29,8 @@
           :style="{ width: '100%' }" placeholder="请选择任务结束时间" clearable
           :picker-options="{ disabledDate: endDisabledDate }"></el-date-picker>
       </el-form-item>
-      <el-form-item label="优先级" prop="jobPriority">
-        <el-select v-model="formData.jobPriority" placeholder="请选择优先级" clearable :style="{ width: '100%' }">
+      <el-form-item label="重要程度" prop="jobPriority">
+        <el-select v-model="formData.jobPriority" placeholder="请选择重要程度" clearable :style="{ width: '100%' }">
           <el-option v-for="(item, index) in jobPriorityOptions" :key="item.value" :disabled="item.disabled"
             :label="item.label" :value="item.value"></el-option>
         </el-select>
@@ -104,7 +104,7 @@ export default {
         }],
         jobPriority: [{
           required: true,
-          message: '请选择优先级',
+          message: '请选择重要程度',
           trigger: 'change'
         }],
         jobType: [{

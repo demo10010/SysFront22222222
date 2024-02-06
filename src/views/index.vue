@@ -18,8 +18,8 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="优先级" prop="priority">
-        <el-select v-model="queryParams.priorityList" placeholder="请选择优先级" :multiple="true">
+      <el-form-item label="重要程度" prop="priority">
+        <el-select v-model="queryParams.priorityList" placeholder="请选择重要程度" :multiple="true">
           <el-option v-for="( item, index ) in  dict.type.task_priority_type" :key="item.value + index + 'priority'"
             :label="item.label" :value="item.value" />
         </el-select>
@@ -55,7 +55,7 @@
 
       <el-table-column label="开始时间" align="center" width="100" prop="assignStartTime" :show-overflow-tooltip="true" />
       <el-table-column label="截止时间" align="center" width="100" prop="assignEndTime" :show-overflow-tooltip="true" />
-      <el-table-column label="优先级" align="center" prop="priority" type="index" width="120">
+      <el-table-column label="重要程度" align="center" prop="priority" type="index" width="120">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.task_priority_type" :value="scope.row.priority"
             :keys="scope.row.priority + 'column' + scope.$index" :show-value="false" />
@@ -68,14 +68,14 @@
             :status="scope.row.completeTime ? 'success' : (scope.row.taskPercent > 100 ? 'exception' : undefined)"></el-progress>
         </template>
       </el-table-column>
-      <el-table-column label="评级" align="center" width="80" prop="level" :show-overflow-tooltip="true">
+      <!-- <el-table-column label="评级" align="center" width="80" prop="level" :show-overflow-tooltip="true">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.task_rating_type" :value="scope.row.rating"
             :keys="scope.row.rating + 'column' + scope.$index" :show-value="false" />
         </template>
-      </el-table-column>
-      <el-table-column label="自评" align="center" prop="selfComment" width="120" :show-overflow-tooltip="true" />
-      <el-table-column label="他评" align="center" prop="otherComment" width="120" :show-overflow-tooltip="true" />
+      </el-table-column> -->
+      <!-- <el-table-column label="自评" align="center" prop="selfComment" width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="他评" align="center" prop="otherComment" width="120" :show-overflow-tooltip="true" /> -->
       <el-table-column label="操作" align="left" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <div>

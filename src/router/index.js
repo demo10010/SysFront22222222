@@ -89,7 +89,7 @@ export const constantRoutes = [
         path: 'quadrant',
         component: () => import('@/views/index'),
         name: 'Index',
-        meta: { title: '任务列表', icon: 'table', affix: true }
+        meta: { title: '后台任务', icon: 'table', affix: true }
       }
     ]
   },
