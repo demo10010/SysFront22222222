@@ -1,7 +1,7 @@
 <template>
   <div class="center">
     <img v-if="thumbup && visible" :src="thumbup" style="width: 24px; height: 24px;" class="shake-animation" />
-    <el-button type="text" @click="completed" v-if="!visible">完成</el-button>
+    <el-button type="text" @click="completed" v-if="!visible" style="padding: 2px;">完成</el-button>
   </div>
 </template>
 <script>

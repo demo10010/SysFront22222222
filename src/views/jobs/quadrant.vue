@@ -1,10 +1,10 @@
 <template>
-  <div style="padding: 10px;background-color: rgba(11, 24, 202, 0.1);">
+  <div style="padding: 10px;">
     <el-row>
       <el-col :span="24">
         <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"
-          style="margin-left: 10px;margin-top: 16px;">
-          <el-form-item label="机构层级" prop="department" v-hasRole="['admin', 'leader']">
+          style="margin-left: 10px;margin-bottom: -16px; margin-top: 4px;">
+          <el-form-item label="机构层级" prop="department" v-hasRole="['admin', 'deptLeader', 'officeLeader']">
             <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择机构层级">
               <el-option v-for="( item, index ) in  departmentList.map(x => ({ label: x, value: x }))"
                 :key="item.value + index + 'level'" :label="item.label" :value="item.value" />
@@ -57,13 +57,13 @@ export default {
     }
   },
   mounted: function () {
-    if (auth.hasRoleOr(['admin', 'leader'])) {
+    if (auth.hasRoleOr(['admin', 'deptLeader', 'officeLeader'])) {
       this.getDeptTree();
     }
   },
   computed: {
     cardHeight() {
-      return `height:${(window.innerHeight - 180) / 2}px`;
+      return `height:${(window.innerHeight - 146) / 2}px`;
     },
   },
   methods: {

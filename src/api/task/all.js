@@ -15,6 +15,14 @@ export function deleteTask(id) {
 	})
 }
 
+export function deleteMulTask(data) {
+	return request({
+		url: '/task/detail/deleteTaskDetailByIds',
+		method: 'post',
+		data
+	})
+}
+
 export function updateTask(data) {
 	return request({
 		url: '/task/detail/edit',
@@ -28,6 +36,21 @@ export function addTaskComplete(data) {
 		url: '/task/detail/complete',
 		method: 'post',
 		data,
+	})
+}
+
+export function addTaskRating(data) {
+	return request({
+		url: '/task/detail/evaluateTaskById',
+		method: 'post',
+		data,
+	})
+}
+
+export function getTaskRatingHistory(id) {
+	return request({
+		url: '/task/detail/queryEvaluateByTaskId/' + id,
+		method: 'get',
 	})
 }
 

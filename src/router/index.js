@@ -78,6 +78,32 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '',
+    component: Layout,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: '/calendar',
+        component: () => import('@/views/jobs/calendarIndex'),
+        name: 'Calendar',
+        meta: { title: '后台任务', icon: 'time', affix: true }
+      }
+    ]
+  },
+  {
+    path: '',
+    component: Layout,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: '/datacenter',
+        component: () => import('@/views/jobs/dataCenter'),
+        name: 'DataCenter',
+        meta: { title: '数据中心', icon: 'job', affix: true }
+      }
+    ]
+  },
+  {
     // path: '',
     path: '',
     component: Layout,
@@ -85,11 +111,10 @@ export const constantRoutes = [
     redirect: 'noredirect',
     children: [
       {
-        // path: 'index',
         path: 'quadrant',
         component: () => import('@/views/index'),
         name: 'Index',
-        meta: { title: '后台任务', icon: 'table', affix: true }
+        meta: { title: '任务列表', icon: 'table', affix: true }
       }
     ]
   },

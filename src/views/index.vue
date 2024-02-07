@@ -1,13 +1,17 @@
 <template>
   <div class="app-container home">
     <div class="job-search">
+      <el-tag @click="selectAllJobType" size="medium" type="info"
+        :effect="queryParams.status.length === dict.type.task_duration_type.length ? 'dark' : 'light'">
+        全部
+      </el-tag>
       <el-tag v-for="(item, index) in dict.type.task_duration_type" @click="selelectJobType(item.value)" size="medium"
-        :type="tagColorMap[index]" :effect="queryParams.status === item.value ? 'dark' : 'light'" :key="index">
+        :type="tagColorMap[index]" :effect="queryParams.status.includes(item.value) ? 'dark' : 'light'" :key="index">
         {{ item.label }}
       </el-tag>
     </div>
     <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px">
-      <el-form-item label="部门" prop="department" v-hasRole="['admin', 'leader']">
+      <el-form-item label="部门" prop="department" v-hasRole="['admin', 'deptLeader', 'officeLeader']">
         <treeselect v-model="queryParams.deptNameId" :multiple="true" :options="departmentList" :show-count="true"
           placeholder="请选择部门" style="width: 230px;line-height: 18px;" />
       </el-form-item>
@@ -18,8 +22,8 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="重要程度" prop="priority">
-        <el-select v-model="queryParams.priorityList" placeholder="请选择重要程度" :multiple="true">
+      <el-form-item label="优先级" prop="priority">
+        <el-select v-model="queryParams.priorityList" placeholder="请选择优先级" :multiple="true">
           <el-option v-for="( item, index ) in  dict.type.task_priority_type" :key="item.value + index + 'priority'"
             :label="item.label" :value="item.value" />
         </el-select>
@@ -40,8 +44,11 @@
       </el-form-item>
     </el-form>
     <el-button type="warning" icon="el-icon-plus" size="medium" @click="createJobVisible = true"
-      style="margin-bottom: 16px;" v-hasRole="['admin']">新建任务</el-button>
-    <el-table v-loading="loading" :data="jobLogList">
+      style="margin-bottom: 16px;" v-hasRole="['admin', 'deptLeader', 'officeLeader']">新建任务</el-button>
+    <el-button type="danger" plain icon="el-icon-delete" @click="handleJobDelete" style="margin-bottom: 16px;"
+      v-hasRole="['admin', 'deptLeader', 'officeLeader']">批量删除</el-button>
+    <el-table v-loading="loading" :data="jobLogList" @selection-change="handleSelectionChange" stripe>
+      <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" width="50" align="center" type="index" />
       <el-table-column label="任务名称" align="center" width="120" prop="taskName" :show-overflow-tooltip="true" />
       <el-table-column label="任务详情" align="center" width="180" prop="taskDetail" :show-overflow-tooltip="true" />
@@ -55,7 +62,7 @@
 
       <el-table-column label="开始时间" align="center" width="100" prop="assignStartTime" :show-overflow-tooltip="true" />
       <el-table-column label="截止时间" align="center" width="100" prop="assignEndTime" :show-overflow-tooltip="true" />
-      <el-table-column label="重要程度" align="center" prop="priority" type="index" width="120">
+      <el-table-column label="优先级" align="center" prop="priority" type="index" width="120">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.task_priority_type" :value="scope.row.priority"
             :keys="scope.row.priority + 'column' + scope.$index" :show-value="false" />
@@ -68,26 +75,31 @@
             :status="scope.row.completeTime ? 'success' : (scope.row.taskPercent > 100 ? 'exception' : undefined)"></el-progress>
         </template>
       </el-table-column>
+      <el-table-column label="任务进度" align="left" prop="percent" width="120">
+        <template slot-scope="{row}">
+          <el-progress :percentage="row.processPercentage"></el-progress>
+        </template>
+      </el-table-column>
       <!-- <el-table-column label="评级" align="center" width="80" prop="level" :show-overflow-tooltip="true">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.task_rating_type" :value="scope.row.rating"
             :keys="scope.row.rating + 'column' + scope.$index" :show-value="false" />
         </template>
       </el-table-column> -->
-      <!-- <el-table-column label="自评" align="center" prop="selfComment" width="120" :show-overflow-tooltip="true" />
-      <el-table-column label="他评" align="center" prop="otherComment" width="120" :show-overflow-tooltip="true" /> -->
       <el-table-column label="操作" align="left" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <div>
             <el-button size="mini" type="text" @click="handleCompletedJob(scope.row)">完成</el-button>
-            <el-button size="mini" type="text" @click="handleRating(scope.row)" v-hasRole="['admin']">他评</el-button>
+            <el-button size="mini" type="text" @click="handleRating(scope.row)"
+              v-hasRole="['admin', 'deptLeader', 'officeLeader']">评价</el-button>
+            <el-button size="mini" type="text" @click="showRatingHistory(scope.row)"
+              v-hasRole="['admin', 'deptLeader', 'officeLeader']">查看评价</el-button>
           </div>
           <div>
             <el-button size="mini" type="text" @click="handleJobEdit(scope.row)" v-if="!scope.row.completeTime"
-              v-hasRole="['admin', 'leader']">编辑</el-button>
-            <el-popconfirm title="确认删除这条任务吗？       " @confirm="handleJobDelete(scope.row)"
-              style="margin-left:10px;">
-              <el-button size="mini" slot="reference" type="text" v-hasRole="['admin']">删除</el-button>
+              v-hasRole="['admin', 'deptLeader', 'officeLeader']">编辑</el-button>
+            <el-popconfirm title="确认删除这条任务吗？       " @confirm="handleJobDelete(scope.row)" style="margin-left:10px;">
+              <el-button size="mini" slot="reference" type="text" v-hasRole="['admin', 'deptLeader', 'officeLeader']">删除</el-button>
             </el-popconfirm>
           </div>
         </template>
@@ -97,57 +109,30 @@
     <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
       @pagination="getList" />
 
-    <el-dialog :visible.sync="dialogVisible" title="完成任务" width="800" append-to-body :show-close="false">
-
-      <label style="display: block;margin-bottom: 8px;">结束日期</label>
-      <el-date-picker v-model="completeQuery.completedDate" style="width: 240px" value-format="yyyy-MM-dd" type="date"
-        placeholder="请选择"></el-date-picker>
-
-      <label style="display: block;margin-bottom: 8px;margin-top: 16px;">评论</label>
-      <el-input v-model="completeQuery.remark" type="textarea" placeholder="请输入内容" />
-
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCompletedJobCancel">取 消</el-button>
-        <el-button type="primary" @click="confirmCompletedDate">确 定</el-button>
-      </span>
-    </el-dialog>
-
-    <el-dialog :visible.sync="ratingDialogVisible" title="评价" width="800" append-to-body :show-close="false">
-
-      <label style="display: block;margin-bottom: 8px;margin-top: 16px;" v-hasRole="['admin', 'leader']">等级</label>
-      <el-tag v-hasRole="['admin', 'leader']" v-for="(    item, index    ) in     dict.type.task_rating_type    "
-        @click="ratingQuery.rating = item.value" style="margin-right: 8px;height: 36px;cursor: pointer;min-width: 90px;"
-        type="primary" size="medium" :effect="ratingQuery.rating === item.value ? 'dark' : 'plain'">
-        {{ item.label }}
-      </el-tag>
-
-      <label style="display: block;margin-bottom: 8px;margin-top: 16px;">评论</label>
-      <el-input v-model="ratingQuery.remark" type="textarea" placeholder="请输入内容" />
-
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="cancelRating">取 消</el-button>
-        <el-button type="primary" @click="confirmRating" :disabled="!ratingQuery.rating">确 定</el-button>
-      </span>
-    </el-dialog>
-
+    <rate :visible="ratingDialogVisible" :onCancel="cancelRating" :onSubmit="confirmRating" :selectId="selectRow.id" />
+    <rate-history :visible="ratingHistoryVisible" :onCancel="cancelRatingHistory" :selectId="selectRow.id" />
+    <complete-job :visible="dialogVisible" :onCancel="handleCompletedJobCancel" :onSubmit="confirmCompletedDate" />
     <create-job :visible="createJobVisible" :onCancel="handleCreatJobCancel" :jobInstitutionOptions="departmentList"
       :jobTypeOptions="dict.type.task_duration_type" :jobPriorityOptions="dict.type.task_priority_type" :isEdit="jobEdit"
-      :defaultFormData="defaultJobEditData" :onSubmit="getList" :taskId='selectRow.id' />
+      :onSubmit="getList" :taskId='selectRow.id' />
   </div>
 </template>
 
 <script>
 
-import { listTable, deleteTask, getTaskDetailsById, addTaskComplete } from "@/api/task/all";
+import { listTable, deleteMulTask, addTaskComplete } from "@/api/task/all";
 import { getDicts } from "@/api/system/dict/data";
-import createJob from '@/views/jobs/createJob';
+import CreateJob from '@/views/jobs/createJob';
+import Rate from '@/views/jobs/components/rate';
+import CompleteJob from '@/views/jobs/components/completeJob';
+import RateHistory from '@/views/jobs/components/rateHistory';
 import auth from '@/plugins/auth';
 import { deptTreeSelect } from "@/api/system/user";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-  components: { createJob, Treeselect },
+  components: { CreateJob, Treeselect, Rate, CompleteJob, RateHistory },
   name: "Index",
   dicts: ['task_priority_type', 'task_duration_type', 'task_rating_type', 'task_status_type'],
   watch: {
@@ -160,24 +145,14 @@ export default {
   },
   data() {
     return {
+      deleteIds: [],
       dialogVisible: false,
       ratingDialogVisible: false,
+      ratingHistoryVisible: false,
       jobEdit: false,
       createJobVisible: false,
-      defaultJobEditData: {
-        jobName: undefined,
-        jobContent: undefined,
-        responsible: undefined,
-        jobStartDate: null,
-        jobEndDate: null,
-        jobPriorityId: undefined,
-        jobType: undefined,
-        jobInstitution: undefined,
-      },
-      ratingQuery: { rating: '', remark: '' },
       loading: false,
       total: 0,
-      completeQuery: { completedDate: '', remark: '' },
       selectRow: {},
       jobLogList: [{
         id: 1,
@@ -192,7 +167,7 @@ export default {
         pageSize: 10,
         priorityList: [],
         ratingList: [],
-        status: '',
+        status: [],
         deptNameId: [],
         currentStatus: [],
       },
@@ -210,7 +185,7 @@ export default {
     }
   },
   mounted: function () {
-    if (auth.hasRoleOr(['admin', 'leader'])) {
+    if (auth.hasRoleOr(['admin', 'deptLeader', 'officeLeader'])) {
       this.getDeptTree();
     }
   },
@@ -239,7 +214,8 @@ export default {
 
     },
     async handleJobDelete(row) {
-      await deleteTask(row.id);
+      const data = !!row?.id ? [row.id] : this.deleteIds
+      await deleteMulTask(data);
       this.handleQuery();
     },
     handleCreatJobCancel() {
@@ -248,20 +224,6 @@ export default {
     },
     async handleJobEdit(row) {
       this.selectRow = row;
-      const res = await getTaskDetailsById(row.id);
-      const { taskName, taskDetail, responsiblePersonId, assignStartTime,
-        assignEndTime, priority, taskDurationType, deptNameId } = res.data;
-
-      this.defaultJobEditData = {
-        jobName: taskName,
-        jobContent: taskDetail,
-        responsible: responsiblePersonId,
-        jobStartDate: assignStartTime,
-        jobEndDate: assignEndTime,
-        jobPriority: priority?.toString(),
-        jobType: taskDurationType,
-        jobInstitution: deptNameId,
-      }
       this.createJobVisible = true;
       this.jobEdit = true;
     },
@@ -285,8 +247,14 @@ export default {
       this.levelOptions = this.mapDicts(res.data);
     },
     selelectJobType(type) {
-      const isSame = this.queryParams.status === type;
-      this.queryParams.status = isSame ? '' : type;
+      const isSame = this.queryParams.status.includes(type);
+      this.queryParams.status = isSame ? this.queryParams.status.filter(f => f !== type) : this.queryParams.status.concat(type);
+      this.handleQuery();
+    },
+    selectAllJobType() {
+      this.queryParams.status = this.queryParams.status.length === this.dict.type.task_duration_type.length ? [] :
+        this.dict.type.task_duration_type.map(x => x.value);
+      this.handleQuery();
     },
     handleQuery() {
       this.queryParams.pageNum = 1;
@@ -305,7 +273,7 @@ export default {
         ...rest,
         assignStartTime: params.beginTime,
         assignEndTime: params.endTime,
-        taskDurationTypeList: status ? [status] : []
+        taskDurationTypeList: status
       });
       this.jobLogList = rows;
       this.total = total;
@@ -314,11 +282,10 @@ export default {
 
     handleCompletedJobCancel() {
       this.dialogVisible = false;
-      this.completeQuery = { remark: '', completedDate: '' };
     },
 
-    async confirmCompletedDate() {
-      const { completedDate, remark } = this.completeQuery;
+    async confirmCompletedDate(formData) {
+      const { completedDate, remark } = formData;
       await addTaskComplete({ id: this.selectRow.id, completeTime: completedDate, selfComment: remark });
       this.handleQuery();
       this.dialogVisible = false;
@@ -326,20 +293,29 @@ export default {
     },
 
     async confirmRating() {
-      const { remark, rating } = this.ratingQuery;
-      await addTaskComplete({ id: this.selectRow.id, otherComment: remark, rating });
       this.handleQuery();
       this.selectRow = {};
       this.cancelRating();
     },
     cancelRating() {
-      this.ratingQuery = { rating: '', remark: '' };
       this.ratingDialogVisible = false;
     },
     handleRating(row) {
       this.ratingDialogVisible = true;
       this.selectRow = row;
     },
+    handleSelectionChange(selection) {
+      this.deleteIds = selection.map(item => item.id);
+      this.multiple = !selection.length;
+    },
+    cancelRatingHistory() {
+      this.ratingHistoryVisible = false;
+      this.selectRow = {};
+    },
+    showRatingHistory(row) {
+      this.selectRow = row;
+      this.ratingHistoryVisible = true;
+    }
   }
 };
 </script>

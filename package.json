@@ -56,7 +56,13 @@
     "vue-meta": "2.4.0",
     "vue-router": "3.4.9",
     "vuedraggable": "2.24.3",
-    "vuex": "3.6.0"
+    "vuex": "3.6.0",
+    "@fullcalendar/vue":"6.1.4",
+    "@fullcalendar/core":"6.1.4",
+    "@fullcalendar/daygrid":"6.1.4",
+    "@fullcalendar/multimonth":"6.1.4",
+    "@fullcalendar/timegrid":"6.1.4",
+    "@fullcalendar/interaction":"6.1.4"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.6",
