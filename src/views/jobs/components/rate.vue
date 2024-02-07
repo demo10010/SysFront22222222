@@ -14,7 +14,7 @@
       <el-form-item label="上级评级" prop="rateLevel">
         <el-rate v-model="formData.rateLevel" allow-half :color="colors"></el-rate>
       </el-form-item>
-      <el-form-item label="备注" prop="comment">
+      <el-form-item label="评价内容" prop="comment">
         <el-input v-model="formData.comment" type="textarea" placeholder="请输入备注" :autosize="{ minRows: 4, maxRows: 4 }"
           :style="{ width: '100%' }"></el-input>
       </el-form-item>
