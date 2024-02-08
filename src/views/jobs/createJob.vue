@@ -12,7 +12,7 @@
       </el-form-item>
       <el-form-item label="承办科室" prop="jobInstitution">
         <treeselect v-model="formData.jobInstitution" :options="jobInstitutionOptions" :show-count="true"
-          placeholder="请选择任务层级" @select="handleJobInstitution" multiple />
+          placeholder="请选择承办科室" multiple />
       </el-form-item>
       <!-- <el-form-item label="承办科室" prop="undertakingDept">
         <el-select v-model="formData.undertakingDept" placeholder="请选择承办科室" clearable :style="{ width: '100%' }" multiple>
@@ -67,7 +67,7 @@
         class="stage-card-add-btn">新增阶段</el-button>
       <div style="max-height: 400px;overflow-y:scroll;" class="stage-card-list" v-if="formData.stageList.length > 0">
         <stage-card v-for="(item, index) in formData.stageList" :key="index" :item="item" :index="index"
-          :onDelete="removeStage" />
+          :onDelete="removeStage" :showDelete="!isDetail" />
       </div>
       <el-form-item label="重要程度" prop="jobPriority">
         <el-select v-model="formData.jobPriority" placeholder="请选择重要程度" clearable :style="{ width: '100%' }">
@@ -109,13 +109,12 @@ export default {
       formData: {
         jobName: undefined,
         jobContent: undefined,
-        responsible: undefined,
+        responsible: [],
         jobStartDate: null,
         jobEndDate: null,
         jobPriority: '',
         jobType: undefined,
-        jobInstitution: undefined,
-        undertakingDept: undefined,
+        jobInstitution: [],
         jobLevel: undefined,
         jobLevelFocusValue: undefined,
         jobLevelLock: false,
@@ -160,7 +159,7 @@ export default {
         }],
         jobInstitution: [{
           required: true,
-          message: '请选择任务层级',
+          message: '请选择承办科室',
           trigger: 'change'
         }],
         undertakingDept: [{
@@ -199,7 +198,6 @@ export default {
       });
     },
     onClose() {
-      debugger;
       this.resetForm("createJobForm");
       this.onCancel();
     },
@@ -278,14 +276,14 @@ export default {
     },
   },
   watch: {
-    taskId(newValue) {
+    visible(newValue) {
       const self = this;
-      newValue && this.getResList()
 
-      if (newValue && self.isEdit) {
+      newValue && self.getResList();
+      if (newValue && self.isEdit && self.taskId) {
         self.getJobDetails(self.taskId);
       }
-    }
+    },
   }
 }
 

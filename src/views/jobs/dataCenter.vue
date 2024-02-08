@@ -3,7 +3,7 @@
     <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"
       style="margin-left: 10px;margin-top: 16px;">
       <el-form-item label="用户名称" prop="department" v-hasRole="['admin', 'deptLeader', 'officeLeader']">
-        <el-input v-model="queryParams.userName" placeholder="请输入用户名称"/>
+        <el-input v-model="queryParams.userName" placeholder="请输入用户名称" />
       </el-form-item>
       <el-form-item class="form-action">
         <el-button type="primary" icon="el-icon-search">搜索</el-button>
@@ -79,7 +79,6 @@
 </template>
   
 <script>
-import { getCache } from "@/api/monitor/cache";
 import * as echarts from "echarts";
 
 export default {
@@ -102,57 +101,58 @@ export default {
     },
   },
   created() {
-    this.getList()
+    setTimeout(() => {
+      this.getList();
+    }, 100)
   },
   methods: {
     getList() {
-      getCache().then((response) => {
-        this.cache = response.data;
+      // getCache().then((response) => {
 
-        this.commandstats = echarts.init(this.$refs.commandstats, "macarons");
-        this.commandstats.setOption({
-          tooltip: {
-            trigger: 'item'
-          },
+      this.commandstats = echarts.init(this.$refs.commandstats, "macarons");
+      this.commandstats.setOption({
+        tooltip: {
+          trigger: 'item'
+        },
 
-          series: [
-            {
-              type: 'pie',
-              radius: ['40%', '70%'],
-              // avoidLabelOverlap: false,
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '70%'],
+            // avoidLabelOverlap: false,
+            label: {
+              show: true,
+              formatter(param) {
+                // correct the percentage
+                return param.name + ' (' + param.percent * 2 + '%)';
+              }
+            },
+            emphasis: {
               label: {
                 show: true,
-                formatter(param) {
-                  // correct the percentage
-                  return param.name + ' (' + param.percent * 2 + '%)';
-                }
-              },
-              emphasis: {
-                label: {
-                  show: true,
-                  fontSize: 40,
-                  fontWeight: 'bold'
-                }
-              },
-              labelLine: {
-                show: true
-              },
-              data: [
-                { value: 580, name: '进行中' },
-                { value: 484, name: '逾期未完成' },
-                { value: 300, name: '已完成' }
-              ]
-            }
-          ],
-          legend: {
-            left: '5%',
-            left: 'left'
-          },
-        });
-        window.addEventListener("resize", () => {
-          this.commandstats.resize();
-        });
+                fontSize: 40,
+                fontWeight: 'bold'
+              }
+            },
+            labelLine: {
+              show: true
+            },
+            data: [
+              { value: 580, name: '进行中' },
+              { value: 484, name: '逾期未完成' },
+              { value: 300, name: '已完成' }
+            ]
+          }
+        ],
+        legend: {
+          left: '5%',
+          left: 'left'
+        },
       });
+      window.addEventListener("resize", () => {
+        this.commandstats.resize();
+      });
+      // });
     },
   }
 };

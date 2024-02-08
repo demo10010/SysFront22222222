@@ -2,7 +2,7 @@
   <el-card class="stage-card">
     <div slot="header" class="clearfix">
       <span>阶段{{ index + 1 }}</span>
-      <el-button style="float: right; padding: 3px 0" type="text" @click="onDelete(index)">删除</el-button>
+      <el-button style="float: right; padding: 3px 0" type="text" @click="onDelete(index)" v-if="showDelete">删除</el-button>
     </div>
     <el-form-item label="阶段名称" prop="stageName">
       <el-input v-model="item.stageName" placeholder="请输入阶段名称" clearable :style="{ width: '100%' }">
@@ -22,7 +22,7 @@
 <script>
 
 export default {
-  props: ['index', 'item', 'onDelete'],
+  props: ['index', 'item', 'onDelete', 'showDelete'],
   created() {
   },
   data() {
@@ -40,9 +40,9 @@ export default {
 .stage-card {
   width: 100%;
 }
-.stage-card + .stage-card{
+
+.stage-card+.stage-card {
   margin-top: 15px;
 }
-
 </style>
   

@@ -1,8 +1,9 @@
 <template>
   <el-dialog :visible="visible" title="查看评价历史" :close-on-click-modal="false" append-to-body :close-on-press-escape="false"
-    @close="onCancel">
-    <div class="ave-rating">
-      总分：<el-rate v-model="totalScore" allow-half :color="colors" show-score disabled></el-rate>
+    @close="onClose">
+    <div class="ave-rating" v-for="(item, index) in totalScore" :key="index">
+      <span style="margin-right: 8px">{{ item.scoreType }}</span>
+      <el-rate v-model="item.scoreValue" allow-half :color="colors" show-score disabled></el-rate>
     </div>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="evaluateBy" label="评价人"></el-table-column>
@@ -11,6 +12,8 @@
           <el-rate v-model="row.averageScore" allow-half :color="colors" show-score disabled></el-rate>
         </template>
       </el-table-column>
+      <el-table-column prop="evaluateContent" label="评价"></el-table-column>
+
       <!-- <el-table-column label="附件">
         <template slot-scope="{ row }">
           {{ row.attachment }}
@@ -41,7 +44,7 @@ export default {
   },
   data() {
     return {
-      totalScore: 0,
+      totalScore: [],
       colors: ['#99A9BF', '#F7BA2A', '#FF9900'],
       tableData: []
     }
@@ -50,7 +53,12 @@ export default {
     async getRateHistory(jobId) {
       const { allScoreList, taskTotalScore } = await getTaskRatingHistory(jobId);
       this.tableData = allScoreList;
-      this.totalScore = taskTotalScore[0]?.scoreValue ?? 0;
+      this.totalScore = taskTotalScore;
+    },
+    onClose() {
+      this.totalScore = [];
+      this.tableData = [];
+      this.onCancel();
     }
   },
   watch: {
