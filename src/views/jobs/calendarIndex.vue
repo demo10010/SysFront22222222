@@ -1,21 +1,17 @@
 <template>
   <div class="app-container home">
     <Calendar :event-data="events" :on-cell-event-click="onCellEventClick" :date-change="dateChange" />
-    <create-job :visible="visible" :onCancel="showDetailCancel" :jobInstitutionOptions="departmentList"
-      :jobTypeOptions="dict.type.task_duration_type" :jobPriorityOptions="dict.type.task_priority_type" :isDetail="true"
-      :isEdit="true" :taskId="jobId" />
+    <job-detail :visible="visible" :taskId="jobId" :onCancel="showDetailCancel" />
   </div>
 </template>
 <script>
 import Calendar from '@/views/jobs/calendar';
-import createJob from '@/views/jobs/createJob';
-import { deptTreeSelect } from "@/api/system/user";
+import JobDetail from '@/views/jobs/components/jobDetail';
 import { listTable } from "@/api/task/all";
 
 
 export default {
-  dicts: ['task_priority_type', 'task_duration_type'],
-  components: { Calendar, createJob },
+  components: { Calendar, JobDetail },
   data() {
     return {
       queryParams: {
@@ -26,7 +22,6 @@ export default {
       dateRange: [],
       loading: false,
       jobId: null,
-      departmentList: [],
       visible: false,
       events: [],
       calendarJobTypeMapping: {
@@ -39,7 +34,6 @@ export default {
   methods: {
     async dateChange(arg) {
       const { start, end, view } = arg;
-      console.log(arg);
       this.dateRange = [this.formatDate(start), this.formatDate(end)];
       this.queryParams.taskDurationTypeList = [this.calendarJobTypeMapping[view.type]];
       this.getList();
@@ -74,13 +68,8 @@ export default {
     showDetailCancel() {
       this.visible = false;
     },
-    getDeptTree() {
-      deptTreeSelect().then(response => {
-        this.departmentList = response.data;
-      });
-    },
+   
     async showDetail(event) {
-      await this.getDeptTree();
       this.jobId = event.id;
       this.visible = true;
     },

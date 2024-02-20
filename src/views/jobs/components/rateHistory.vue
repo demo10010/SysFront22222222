@@ -63,7 +63,6 @@ export default {
   },
   watch: {
     'selectId': function (newValue) {
-      console.log(newValue, "jobIdjobIdjobIdjobId");
       if (!newValue && !this.visible) return;
       this.getRateHistory(newValue);
     }

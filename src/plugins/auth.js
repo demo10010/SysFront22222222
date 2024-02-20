@@ -15,7 +15,6 @@ function authPermission(permission) {
 function authRole(role) {
   const super_admin = "admin";
   const roles = store.getters && store.getters.roles;
-  console.log(roles,"rolesroles")
   if (role && role.length > 0) {
     return roles.some(v => {
       return super_admin === v || v === role

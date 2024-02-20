@@ -202,14 +202,11 @@ export default {
       const startDate = new Date(assignStartTime);
       const endDate = new Date(assignEndTime);
       const conversion = 1000 * 60 * 60 * 24;
-      if (endDate < startDate) return 0;
 
-      const durationDays = Math.ceil(endDate - startDate) / conversion;
+      const totalDays = Math.ceil(endDate - startDate) / conversion;
+      const pastDays = Math.ceil(new Date() - startDate) / conversion;
 
-      const pastDaysAbs = Math.max(Math.ceil(new Date() - startDate),0)
-      const pastDays = pastDaysAbs/ conversion;
-
-      const taskPercent = Math.round((pastDays / durationDays) * 100);
+      const taskPercent = Math.round((pastDays / totalDays) * 100);
       const validPercent = Math.min(taskPercent, 100);
       row.taskPercent = validPercent;
 

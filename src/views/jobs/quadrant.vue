@@ -5,7 +5,8 @@
         <el-form :model="queryParams" ref="queryForm" size="medium" :inline="true" class="job-form" label-width="68px"
           style="margin-left: 10px;margin-bottom: -16px; margin-top: 4px;">
           <el-form-item label="机构层级" prop="department" v-hasRole="['admin', 'deptLeader', 'officeLeader']">
-            <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择机构层级" @change="searching = true">
+            <el-select v-model="queryParams.deptLevel" style="width: 200px" placeholder="请选择机构层级"
+              @change="searching = true">
               <el-option v-for="( item, index ) in  departmentList.map(x => ({ label: x, value: x }))"
                 :key="item.value + index + 'level'" :label="item.label" :value="item.value" />
             </el-select>
@@ -16,9 +17,7 @@
         </el-form>
       </el-col>
       <el-col :span="12" v-for="item in dict.type.task_priority_type" :key="item.value" :style="cardHeight">
-        <jobCard :currentType="item.value" :currentLabel="item.label" :getListData="getListData" :searching="searching"
-          :departmentList="departmentAllList" :taskDurationList="dict.type.task_duration_type"
-          :taskPriorityList="dict.type.task_priority_type" />
+        <jobCard :currentType="item.value" :currentLabel="item.label" :getListData="getListData" :searching="searching" />
       </el-col>
     </el-row>
   </div>
@@ -28,9 +27,6 @@
 
 import jobCard from '@/views/jobs/components/jobcard';
 import { listTable } from "@/api/task/all";
-import { deptTreeSelect } from "@/api/system/user";
-import auth from '@/plugins/auth';
-
 
 export default {
   dicts: ['task_priority_type', 'task_duration_type'],
@@ -46,7 +42,7 @@ export default {
         currentStatus: ['进行中'],
         taskDurationTypeList: ['日任务'],
         deptLevel: []
-      },colorMap: {
+      }, colorMap: {
         // 1: "#409eff",
         // 2: "#ADD5FF",
         // 3: "#E3F1FF",
@@ -57,9 +53,7 @@ export default {
     }
   },
   mounted: function () {
-    if (auth.hasRoleOr(['admin', 'deptLeader', 'officeLeader'])) {
-      this.getDeptTree();
-    }
+
   },
   computed: {
     cardHeight() {
@@ -70,11 +64,6 @@ export default {
     async getListData(query) {
       const self = this;
       return listTable({ ...this.queryParams, ...query }).finally(() => self.searching = false);
-    },
-    getDeptTree() {
-      deptTreeSelect().then(response => {
-        this.departmentAllList = response.data;
-      });
     },
   }
 };

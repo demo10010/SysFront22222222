@@ -1,8 +1,8 @@
 <template>
   <!-- <el-card :style="{ 'background-color': colorMap[currentType] }" class="job-card"> -->
   <el-card class="job-card" :class="classMap[currentType]" :body-style="{ padding: '1px' }">
-    <el-tag style="margin-bottom: 4px;color: black;" :style="{ 'background-color': colorMap[currentType] }"
-      type="info">{{ currentLabel }}</el-tag>
+    <el-tag style="margin-bottom: 4px;color: black;" :style="{ 'background-color': colorMap[currentType] }" type="info">{{
+      currentLabel }}</el-tag>
     <!-- <el-table class="job-card-tb" :stripe="true" v-loading="loading" :data="list" style="width: 100%;" :height="tableHeight"> -->
 
     <el-table class="job-card-tb" v-loading="loading" :data="list" style="width: 100%;"
@@ -34,35 +34,21 @@
     </el-table>
     <!-- <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize"
       @pagination="getList" />  -->
-    <create-job :visible="visible" :onCancel="showDetailCancel" :jobInstitutionOptions="departmentList"
-      :jobTypeOptions="taskDurationList" :jobPriorityOptions="taskPriorityList" :isDetail="true" :isEdit="true"
-      :defaultFormData="defaultJobEditData" :taskId='selectRow.id' />
+    <job-detail :visible="visible" :taskId="selectRow.id" :onCancel="showDetailCancel" />
   </el-card>
 </template>
 
 
 <script>
 
-import createJob from '@/views/jobs/createJob';
+import JobDetail from '@/views/jobs/components/jobDetail';
 import thumbUp from '@/views/jobs/components/thumbUp.vue';
-import { getTaskDetailsById, addTaskComplete } from "@/api/task/all";
+import { addTaskComplete } from "@/api/task/all";
 
 
 export default {
-  components: { createJob, thumbUp },
+  components: { thumbUp, JobDetail },
   props: {
-    departmentList: {
-      type: Array,
-      default: new Array([])
-    },
-    taskDurationList: {
-      type: Array,
-      default: new Array([])
-    },
-    taskPriorityList: {
-      type: Array,
-      default: new Array([])
-    },
     currentType: {
       type: String,
       default: ''
@@ -130,20 +116,6 @@ export default {
       }, 1000);
     },
     async showDetail(row) {
-      const res = await getTaskDetailsById(row.id);
-      const { taskName, taskDetail, responsiblePersonId, assignStartTime,
-        assignEndTime, priority, taskDurationType, deptNameId } = res.data;
-
-      this.defaultJobEditData = {
-        jobName: taskName,
-        jobContent: taskDetail,
-        responsible: responsiblePersonId,
-        jobStartDate: assignStartTime,
-        jobEndDate: assignEndTime,
-        jobPriority: String(priority),
-        jobType: taskDurationType,
-        jobInstitution: deptNameId,
-      }
       this.visible = true;
       this.selectRow = row;
     },
@@ -167,14 +139,11 @@ export default {
       const startDate = new Date(assignStartTime);
       const endDate = new Date(assignEndTime);
       const conversion = 1000 * 60 * 60 * 24;
-      if (endDate < startDate) return 0;
 
-      const durationDays = Math.ceil(endDate - startDate) / conversion;
+      const totalDays = Math.ceil(endDate - startDate) / conversion;
+      const pastDays = Math.ceil(new Date() - startDate) / conversion;
 
-      const pastDaysAbs = Math.max(Math.ceil(new Date() - startDate),0)
-      const pastDays = pastDaysAbs/ conversion;
-
-      const taskPercent = Math.round((pastDays / durationDays) * 100);
+      const taskPercent = Math.round((pastDays / totalDays) * 100);
       const validPercent = Math.min(taskPercent, 100);
       row.taskPercent = validPercent;
 
