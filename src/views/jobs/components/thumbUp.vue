@@ -22,6 +22,7 @@ export default {
     async completed() {
       await this.finish();
       this.visible = true;
+      setTimeout(() => this.visible = false, 1000)
     }
   },
 }

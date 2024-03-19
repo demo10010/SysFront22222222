@@ -30,13 +30,13 @@
             <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
             <el-table-column label="评价" align="center" prop="taskDetail" :show-overflow-tooltip="true">
               <template slot-scope="scope">
-                <el-button type="text" @click="showRatingHistory(scope.row)"
+                <el-button type="text" @click="showRatingHistory(scope.row)" class="table-btn"
                   v-hasRole="['admin', 'deptLeader', 'officeLeader']">查看评价</el-button>
               </template>
             </el-table-column>
             <el-table-column label="任务详情" align="center" prop="taskDetail" :show-overflow-tooltip="true">
               <template slot-scope="scope">
-                <el-button type="text" @click="showDetail(scope.row)">查看详情</el-button>
+                <el-button type="text" @click="showDetail(scope.row)" class="table-btn">查看详情</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -52,7 +52,7 @@
             <el-table-column label="结束时间" align="center" prop="assignEndTime" :show-overflow-tooltip="true" />
             <el-table-column label="任务详情" align="center" prop="taskDetail" :show-overflow-tooltip="true">
               <template slot-scope="scope">
-                <el-button type="text" @click="showBeforeDetail(scope.row)">查看详情</el-button>
+                <el-button type="text" @click="showBeforeDetail(scope.row)" class="table-btn">查看详情</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -65,13 +65,13 @@
             <el-table-column label="序号" width="50" align="center" type="index" />
             <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
             <el-table-column label="任务进度" align="left" prop="percent" width="120">
-              <template slot-scope="scope">
-                <el-progress :percentage="20"></el-progress>
+              <template slot-scope="{row}">
+                <el-progress :percentage="row.processPercentage"></el-progress>
               </template>
             </el-table-column>
             <el-table-column label="任务详情" width="100" align="center" prop="taskDetail" :show-overflow-tooltip="true">
               <template slot-scope="scope">
-                <el-button type="text" @click="showDetail(scope.row)">查看详情</el-button>
+                <el-button type="text" @click="showDetail(scope.row)" class="table-btn">查看详情</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -242,6 +242,25 @@ export default {
   height: calc(100% - 4px);
   overflow: auto;
   border: 3px solid transparent;
+}
+
+.el-table .el-table__header-wrapper th,
+.el-table .el-table__fixed-header-wrapper th {
+  height: auto !important;
+}
+
+.table-btn.el-button {
+  padding: 0;
+}
+
+.el-table {
+  th {
+    padding: 2px;
+  }
+
+  td {
+    padding: 2px;
+  }
 }
 </style>
   

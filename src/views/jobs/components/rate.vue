@@ -18,15 +18,19 @@
         <el-input v-model="formData.comment" type="textarea" placeholder="请输入备注" :autosize="{ minRows: 4, maxRows: 4 }"
           :style="{ width: '100%' }"></el-input>
       </el-form-item>
-      <!-- <el-form-item label="附件" prop="field106">
-        <el-upload ref="attachemt" :file-list="field106fileList" :action="field106Action"
-          :before-upload="attachemtBeforeUpload" list-type="picture">
+      <el-form-item label="附件" prop="field106">
+        <el-upload ref="fileUpload" :file-list="fileList" :action="uploadUrl" :before-upload="handleBeforeUpload"
+           list-type="picture" :headers="headers" :on-error="handleUploadError"
+          :on-success="handleUploadSuccess" :on-exceed="handleExceed" multiple :limit="limit">
           <el-button size="small" type="primary" icon="el-icon-upload">点击上传</el-button>
         </el-upload>
-      </el-form-item> -->
+      </el-form-item>
 
-      <!-- <el-image style="width: 100px; height: 100px" :src="field106fileList[0].url" :preview-src-list="previewFileList">
-      </el-image> -->
+      <!-- <div style="margin-left: 100px">
+        <el-image style="width: 100px; height: 100px" v-for="(item, index) in fileList" :src="item.url" :key="index"
+          :previewSrcList="[item.url]" class="pre-view" v-if="item.contentType.indexOf('image') > -1">
+        </el-image>
+      </div> -->
     </el-form>
 
     <div slot="footer">
@@ -38,7 +42,8 @@
 </template>
 <script>
 
-import { addTaskRating } from "@/api/task/all";
+import { addTaskRating, picUpload } from "@/api/task/all";
+import { getToken } from "@/utils/auth";
 
 export default {
   dicts: ['task_score_type'],
@@ -63,6 +68,16 @@ export default {
   data() {
     return {
       loading: false,
+      number: 0,
+      limit: 5,
+      uploadList: [],
+      fileSize: 15,
+      fileList: [],
+      fileType: ['bmp', 'jpg', 'png', 'gif', 'svg', 'raw',],
+      uploadUrl: process.env.VUE_APP_BASE_API + '/system/user/profile/picUpload',
+      headers: {
+        Authorization: "Bearer " + getToken(),
+      },
       formData: {
         rateWork: 0,
         rateProgress: 0,
@@ -94,10 +109,7 @@ export default {
         }],
         comment: [],
       },
-      field106Action: 'https://jsonplaceholder.typicode.com/posts/',
-      field106fileList: [{ name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100' }, { name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100' }],
       colors: ['#99A9BF', '#F7BA2A', '#FF9900'],
-      previewFileList: []
     }
   },
   methods: {
@@ -106,7 +118,9 @@ export default {
         this.loading = true;
         await this.submitForm();
         this.onSubmit();
-        this.resetForm();
+        this.onClose();
+      } catch (error) {
+        this.$message.error(error);
       } finally {
         this.loading = false;
       }
@@ -115,46 +129,111 @@ export default {
     onClose() {
       this.resetForm();
       this.onCancel();
+      this.fileList = [];
     },
     async submitForm() {
-      this.$refs['elForm'].validate(async valid => {
-        if (!valid) return;
-        const {
-          rateWork,
-          rateProgress,
-          rateGrade,
-          rateLevel,
-          comment
-        } = this.formData;
-        await addTaskRating({
-          evaluateContent: comment,
-          evaluateImage: [],
-          taskId: this.selectId,
-          scoreList: [{
-            scoreType: "工作筹划",
-            scoreValue: rateWork
-          }, {
-            scoreType: "推进进度",
-            scoreValue: rateProgress
-          }, {
-            scoreType: "工作成绩",
-            scoreValue: rateGrade
-          }, {
-            scoreType: "上级评价",
-            scoreValue: rateLevel
-          }]
-        })
+      const valid = await this.$refs['elForm'].validate();
+      if (!valid) throw new Error("验证失败！");
+      const {
+        rateWork,
+        rateProgress,
+        rateGrade,
+        rateLevel,
+        comment
+      } = this.formData;
+      if (!rateWork || !rateProgress || !rateGrade || !rateLevel) {
+        throw new Error(`评分不能为空！`);
+      }
+      await addTaskRating({
+        evaluateContent: comment,
+        evaluateImage: [],
+        taskId: this.selectId,
+        imgUrls: this.fileList.map(f => f.path),
+        scoreList: [{
+          scoreType: "工作筹划",
+          scoreValue: rateWork
+        }, {
+          scoreType: "推进进度",
+          scoreValue: rateProgress
+        }, {
+          scoreType: "工作成绩",
+          scoreValue: rateGrade
+        }, {
+          scoreType: "上级评价",
+          scoreValue: rateLevel
+        }]
       })
     },
     resetForm() {
       this.$refs['elForm'].resetFields()
     },
-    attachemtBeforeUpload(file) {
-      let isRightSize = file.size / 1024 / 1024 < 2
-      if (!isRightSize) {
-        this.$message.error('文件大小超过 2MB')
+    // 上传前校检格式和大小
+    handleBeforeUpload(file) {
+      // 校检文件类型
+      if (this.fileType) {
+        const fileName = file.name.split('.');
+        const fileExt = fileName[fileName.length - 1];
+        const isTypeOk = this.fileType.indexOf(fileExt) >= 0;
+        if (!isTypeOk) {
+          this.$modal.msgError(`文件格式不正确, 请上传${this.fileType.join("/")}格式文件!`);
+          return false;
+        }
       }
-      return isRightSize
+      // 校检文件大小
+      if (this.fileSize) {
+        const isLt = file.size / 1024 / 1024 < this.fileSize;
+        if (!isLt) {
+          this.$modal.msgError(`上传文件大小不能超过 ${this.fileSize} MB!`);
+          return false;
+        }
+      }
+      this.$modal.loading("正在上传文件，请稍候...");
+      this.number++;
+      return true;
+    },
+    // 文件个数超出
+    handleExceed() {
+      this.$modal.msgError(`上传文件数量不能超过 ${this.limit} 个!`);
+    },
+    // 上传失败
+    handleUploadError(err) {
+      this.$modal.msgError("上传文件失败，请重试");
+      this.$modal.closeLoading();
+    },
+    // 上传成功回调
+    handleUploadSuccess(res, file) {
+      if (res.code === 200) {
+        this.uploadList.push({ name: res.fileName, path: res.imgUrl, url: file.url, contentType: file.raw.type });
+        this.uploadedSuccessfully();
+      } else {
+        this.number--;
+        this.$modal.closeLoading();
+        this.$modal.msgError(res.msg);
+        this.$refs.fileUpload.handleRemove(file);
+        this.uploadedSuccessfully();
+      }
+    },
+    // 删除文件
+    handleDelete(index) {
+      this.fileList.splice(index, 1);
+    },
+    // 上传结束处理
+    uploadedSuccessfully() {
+      if (this.number > 0 && this.uploadList.length === this.number) {
+        this.fileList = this.fileList.concat(this.uploadList);
+        this.uploadList = [];
+        this.number = 0;
+        this.$modal.closeLoading();
+      }
+    },
+    // 获取文件名称
+    getFileName(name) {
+      // 如果是url那么取最后的名字 如果不是直接返回
+      if (name.lastIndexOf("/") > -1) {
+        return name.slice(name.lastIndexOf("/") + 1);
+      } else {
+        return name;
+      }
     },
   }
 };
@@ -163,5 +242,13 @@ export default {
 <style scoped>
 .el-rate {
   margin-top: 8px;
+}
+
+.pre-view+.pre-view {
+  margin-left: 8px;
+}
+
+.pre-view {
+  margin-bottom: 8px;
 }
 </style>

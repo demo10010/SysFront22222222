@@ -28,12 +28,12 @@
             :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="评级" prop="level">
+      <!-- <el-form-item label="评级" prop="level">
         <el-select v-model="queryParams.ratingList" style="width: 160px" placeholder="请选择评级" :multiple="true">
           <el-option v-for="( item, index ) in  dict.type.task_rating_type " :key="item.value + index + 'level'"
             :label="item.label" :value="item.value" />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="任务时间">
         <el-date-picker v-model="dateRange" style="width: 240px" value-format="yyyy-MM-dd" type="daterange"
           range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
@@ -68,16 +68,30 @@
             :keys="scope.row.priority + 'column' + scope.$index" :show-value="false" />
         </template>
       </el-table-column>
-      <el-table-column label="部门" align="center" prop="deptName" width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="部门" align="center" prop="deptName" width="120" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          {{ scope.row.principalDept }}
+        </template>
+      </el-table-column>
+
       <el-table-column label="耗时百分比" align="left" prop="percent" width="120">
         <template slot-scope="scope">
           <el-progress :percentage="getJobPercent(scope.row)"
             :status="scope.row.completeTime ? 'success' : (scope.row.taskPercent > 100 ? 'exception' : undefined)"></el-progress>
         </template>
       </el-table-column>
-      <el-table-column label="任务进度" align="left" prop="percent" width="120">
+      <el-table-column label="任务进度" align="left" prop="percent" width="150">
         <template slot-scope="{row}">
-          <el-progress :percentage="row.processPercentage"></el-progress>
+          <el-progress v-if="!row.showProcessPercentageInput" :percentage="row.processPercentage"
+            style="width: 100px; display: inline-block !important;"></el-progress>
+          <i class="el-icon-edit" @click="row.showProcessPercentageInput = true" v-if="!row.showProcessPercentageInput"
+            style="cursor: pointer;"></i>
+          <div v-if="row.showProcessPercentageInput" style="width: 150px;">
+            <el-input-number v-model="row.processPercentageInput" :min="1" :max="99" size="mini"
+              style="width: 100px;display: inline-block;"></el-input-number>
+            <i class="el-icon-check" @click="updateProcessPercentage(row)"
+              style="cursor: pointer; width: 24px;height: 24px;font-size: 24px; margin-left: 6px;"></i>
+          </div>
         </template>
       </el-table-column>
       <!-- <el-table-column label="评级" align="center" width="80" prop="level" :show-overflow-tooltip="true">
@@ -99,7 +113,8 @@
             <el-button size="mini" type="text" @click="handleJobEdit(scope.row)" v-if="!scope.row.completeTime"
               v-hasRole="['admin', 'deptLeader', 'officeLeader']">编辑</el-button>
             <el-popconfirm title="确认删除这条任务吗？       " @confirm="handleJobDelete(scope.row)" style="margin-left:10px;">
-              <el-button size="mini" slot="reference" type="text" v-hasRole="['admin', 'deptLeader', 'officeLeader']">删除</el-button>
+              <el-button size="mini" slot="reference" type="text"
+                v-hasRole="['admin', 'deptLeader', 'officeLeader']">删除</el-button>
             </el-popconfirm>
           </div>
         </template>
@@ -120,7 +135,7 @@
 
 <script>
 
-import { listTable, deleteMulTask, addTaskComplete } from "@/api/task/all";
+import { listTable, deleteMulTask, addTaskComplete, updateTask } from "@/api/task/all";
 import { getDicts } from "@/api/system/dict/data";
 import CreateJob from '@/views/jobs/createJob';
 import Rate from '@/views/jobs/components/rate';
@@ -143,6 +158,7 @@ export default {
       }
     }
   },
+
   data() {
     return {
       deleteIds: [],
@@ -195,16 +211,24 @@ export default {
         this.departmentList = response.data;
       });
     },
+    async updateProcessPercentage(row) {
+      await updateTask({ id: row.id, processPercentage: row.processPercentageInput });
+      row.showProcessPercentageInput = false;
+      row.processPercentage = row.processPercentageInput;
+    },
     getJobPercent(row) {
       const { completeTime, assignStartTime, assignEndTime } = row;
       if (!assignStartTime || !assignEndTime) return 0;
       if (completeTime) return 100;
-      const startDate = new Date(assignStartTime);
-      const endDate = new Date(assignEndTime);
+      const currentDate = new Date(new Date().toLocaleDateString('zh', { year: 'numeric', month: '2-digit', day: '2-digit' })).getTime();
+      const startDate = new Date(`${assignStartTime} 00:00:00`).getTime();
+
+      if (startDate - currentDate > 0) return 0;
+      const endDate = new Date(`${assignEndTime} 00:00:00`).getTime();
       const conversion = 1000 * 60 * 60 * 24;
 
-      const totalDays = Math.ceil(endDate - startDate) / conversion;
-      const pastDays = Math.ceil(new Date() - startDate) / conversion;
+      const totalDays = (Math.ceil(endDate - startDate) / conversion) + 1;
+      const pastDays = (Math.ceil(currentDate - startDate) / conversion) + 1;
 
       const taskPercent = Math.round((pastDays / totalDays) * 100);
       const validPercent = Math.min(taskPercent, 100);
@@ -232,10 +256,6 @@ export default {
     },
     mapDicts(data) {
       return data?.map(m => ({ id: m.dictValue, name: m.dictLabel }))
-    },
-    async getTaskTimeOptions() {
-      const res = await getDicts('task_duration_type');
-      this.taskTimeOptions = this.mapDicts(res.data);
     },
     async getPriorityOptions() {
       const res = await getDicts('task_priority_type');
@@ -274,7 +294,12 @@ export default {
         assignEndTime: params.endTime,
         taskDurationTypeList: status
       });
-      this.jobLogList = rows;
+      this.jobLogList = rows.map(row => ({
+        ...row,
+        principalDept: row.principalDeptList?.map(x => x.deptName)?.join(", "),
+        processPercentageInput: row.processPercentage,
+        showProcessPercentageInput: false
+      }));
       this.total = total;
       this.loading = false;
     },
@@ -284,8 +309,8 @@ export default {
     },
 
     async confirmCompletedDate(formData) {
-      const { completedDate, remark } = formData;
-      await addTaskComplete({ id: this.selectRow.id, completeTime: completedDate, selfComment: remark });
+      const { completedDate, remark, imgUrls } = formData;
+      await addTaskComplete({ id: this.selectRow.id, completeTime: completedDate, selfComment: remark, imgUrls });
       this.handleQuery();
       this.dialogVisible = false;
       this.selectRow = {};

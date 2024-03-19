@@ -1,9 +1,30 @@
 <template>
-  <Fullcalendar :options="config">
-    <template #eventContent="{ timeText, event }">
-      <i>{{ event.title }}</i>
-    </template>
-  </Fullcalendar>
+  <div>
+    <div class="calendar-header">
+      <el-button-group>
+        <el-button @click="changeView('multiMonthYear')" size="medium"
+          :type="selectView == 'multiMonthYear' ? 'primary' : 'undefined'">年</el-button>
+        <el-button @click="changeView('quarter')" :type="selectView == 'quarter' ? 'primary' : 'undefined'">季</el-button>
+        <el-button @click="changeView('dayGridMonth')"
+          :type="selectView == 'dayGridMonth' ? 'primary' : 'undefined'">月</el-button>
+        <el-button @click="changeView('dayGridWeek')"
+          :type="selectView == 'dayGridWeek' ? 'primary' : 'undefined'">周</el-button>
+      </el-button-group>
+      <h2>{{ getTitle() }}</h2>
+      <div>
+        <el-button-group>
+          <el-button @click="toggleAction('prev')" icon="el-icon-arrow-left"></el-button>
+          <el-button @click="toggleAction('next')" icon="el-icon-arrow-right"></el-button>
+        </el-button-group>
+        <el-button @click="toggleAction('today')" style="margin-left: 8px;">今天</el-button>
+      </div>
+    </div>
+    <Fullcalendar :options="config" ref="fullCalendar">
+      <template #eventContent="{ timeText, event }">
+        <i>{{ event.title }}</i>
+      </template>
+    </Fullcalendar>
+  </div>
 </template>
 
 <script>
@@ -12,12 +33,34 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import multiMonthPlugin from "@fullcalendar/multimonth";
+import QuarterViewPlugin from "./quarterPlugin";
+import {
+  getPrevNextMonth,
+  getPrevNextDay,
+  getPrevNextWeek,
+  getPrevNextQuarter,
+  getPrevNextYear,
+  getCenterTitle,
+} from "./util";
+
 
 export default {
   name: "Calendar",
   props: ['eventData', 'onCellEventClick', 'dateChange'],
   data() {
     return {
+      selectEvent: null,
+      initialDate: new Date(),
+      currentDate: new Date(),
+      vieMap: {
+        quarter: getPrevNextQuarter,
+        dayGridMonth: getPrevNextMonth,
+        dayGridWeek: getPrevNextWeek,
+        dayGridDay: getPrevNextDay,
+        multiMonthYear: getPrevNextYear,
+      },
+      selectAction: "today",
+      selectView: "dayGridMonth",
       configOptions() {
         return {
           locale: 'zh',
@@ -25,53 +68,39 @@ export default {
           plugins: [
             dayGridPlugin,
             timeGridPlugin,
+            multiMonthPlugin,
             interactionPlugin,
-            multiMonthPlugin
+            QuarterViewPlugin,
           ],
           initialView: "dayGridMonth",
-          // views: {
-          //   agendaFourDay: {
-          //     type: "multiMonthYear",
-          //     duration: { month: 3 },
-          //     buttonText: "季度",
-          //   },
+          initialDate: this.initialDate,
+          headerToolbar: false,
+          // headerToolbar: {
+          //   right: "prev,next today",
+          //   center: "title",
+          //   left: "multiMonthYear,dayGridMonth,dayGridWeek",
           // },
-          // views: {
-          //   custom: {
-          //     component: CustomView,
-          //     buttonText: "自定义",
-          //   },
-          // },
-          headerToolbar: {
-            right: "prev,next today",
-            center: "title",
-            left: "multiMonthYear,dayGridMonth,dayGridWeek",
-            // left: "custom",
-          },
-          buttonText: {
-            today: '今天',
-            month: '月',
-            week: '周',
-            year: '年'
-          },
           events: this.testEvent,
           slotLabelFormat: () => '',
-          datesSet: arg => {
-            this.dateChange(arg)
-          }
         }
       },
       eventHandlers() {
         return {
           eventClick: arg => this.onCellEventClick(arg.event),
-          eventResize: this.onEventDrop,
-          select: this.onDateSelect
         }
       },
       visible: false,
     }
   },
   components: { Fullcalendar },
+  mounted: function () {
+    window.addEventListener(
+      "calendar-custom-view-event",
+      this.customViewEvent,
+      true
+    );
+    this.changeView('dayGridMonth');
+  },
   computed: {
     config() {
       return {
@@ -84,16 +113,51 @@ export default {
     }
   },
   methods: {
-    handleDateClick(arg) {
-      /* Get click event data */
-      console.log(arg)
-      /* Get event data in store  */
-      console.log(this.$store.state.events);
-      const title = prompt("Please enter a title for your event");
-      if (!title) {
-        return undefined;
+    customViewEvent: function (e) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (e.target == e.currentTarget) {
+        this.onCellEventClick(e.detail)
       }
-    }
+    },
+    removeCustomViewEvent: function () {
+      window.removeEventListener(
+        "calendar-custom-view-event",
+        this.customViewEvent
+      );
+    },
+    getCurrentDateRange(range) {
+      const { start, end: basicEnd } = range;
+      const endDays = new Date(basicEnd).getDate();
+      const newEndDate = new Date(basicEnd);
+      const end = new Date(newEndDate.setDate(endDays - 1));
+      return {
+        start, end
+      }
+    },
+    handleRequestChange() {
+      const calendarApi = this.$refs.fullCalendar.getApi();
+      const view = calendarApi.view.type;
+      const range = calendarApi.currentData.dateProfile.currentRange;
+      this.dateChange({ view, ...this.getCurrentDateRange(range) });
+    },
+    toggleAction(arg) {
+      this.selectAction = arg;
+      const calendarApi = this.$refs.fullCalendar.getApi();
+      const viewType = calendarApi.view.type;
+      const value = this.vieMap[viewType](this.currentDate)[arg];
+      this.currentDate = value;
+      calendarApi.gotoDate(value);
+      this.handleRequestChange();
+    },
+    changeView(viewName) {
+      this.$refs.fullCalendar.getApi().changeView(viewName);
+      this.selectView = viewName;
+      this.handleRequestChange();
+    },
+    getTitle() {
+      return getCenterTitle(this.selectView, this.currentDate);
+    },
   }
 }
 </script>
@@ -143,6 +207,12 @@ export default {
   border-radius: 40px;
   padding-left: 4px;
   padding-right: 4px;
+  color: #fff;
+}
+
+.fc-daygrid-event:hover {
+  color: #fff;
+  opacity: 0.8;
 }
 
 .fc-daygrid-more-link.fc-more-link {
@@ -160,6 +230,28 @@ export default {
       color: #2c3e50;
     }
   }
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quarter-view-event-content+.quarter-view-event-content {
+  margin-top: 8px;
+}
+
+.quarter-view-event {
+  height: 100%;
+}
+
+.quarter-view-event-content-no-data {
+  height: 100%;
+  width: 100%;
+  padding-top: 80px;
+  display: flex;
+  justify-content: center;
 }
 
 @media only screen and (max-width: 600px) {

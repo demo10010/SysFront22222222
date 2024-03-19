@@ -14,11 +14,18 @@
       </el-table-column>
       <el-table-column prop="evaluateContent" label="评价"></el-table-column>
 
-      <!-- <el-table-column label="附件">
+      <el-table-column label="附件">
         <template slot-scope="{ row }">
-          {{ row.attachment }}
+          <div v-if="row.imgUrls.length > 0">
+            <el-image style="width: 32px; height: 32px;" :src="row.imgUrls[0]"
+              :previewSrcList="row.imgUrls" class="pre-view">
+            </el-image>
+            <span v-if="row.imgUrls.length > 1">+{{
+              row.imgUrls.length - 1
+            }}</span>
+          </div>
         </template>
-      </el-table-column> -->
+      </el-table-column>
     </el-table>
   </el-dialog>
 </template>
@@ -52,7 +59,10 @@ export default {
   methods: {
     async getRateHistory(jobId) {
       const { allScoreList, taskTotalScore } = await getTaskRatingHistory(jobId);
-      this.tableData = allScoreList;
+      this.tableData = allScoreList.map(x => ({
+        ...x,
+        imgUrls: x.imgUrls.map(m => process.env.VUE_APP_BASE_API + m)
+      }));
       this.totalScore = taskTotalScore;
     },
     onClose() {

@@ -6,7 +6,7 @@
         <span>{{ data.taskName }}</span>
       </el-form-item>
 
-      <el-form-item label="任务开时间" prop="jobStartDate">
+      <el-form-item label="任务时间" prop="jobStartDate">
         <span>{{ data.assignStartTime }} - {{ data.assignEndTime }}</span>
       </el-form-item>
 
@@ -45,7 +45,6 @@ export default {
 
     getBeforeTimeContent() {
       const { assignEndTime } = this.data;
-      debugger;
       const passTimes = new Date(new Date().getTime() - new Date(`${assignEndTime} 00:00:00`).getTime());
       const days = Math.floor(passTimes / (1000 * 60 * 60 * 24));
       // const hours = Math.floor((passTimes % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))

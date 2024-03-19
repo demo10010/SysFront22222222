@@ -28,7 +28,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center" prop="actionsComplete">
         <template slot-scope="scope">
-          <thumbUp :finish="() => confirmCompleted(scope.row)" />
+          <thumb-up :finish="() => confirmCompleted(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -132,23 +132,6 @@ export default {
       this.total = total;
       this.loading = false;
     },
-    getJobPercent(row) {
-      const { completeTime, assignStartTime, assignEndTime } = row;
-      if (!assignStartTime || !assignEndTime) return 0;
-      if (completeTime) return 100;
-      const startDate = new Date(assignStartTime);
-      const endDate = new Date(assignEndTime);
-      const conversion = 1000 * 60 * 60 * 24;
-
-      const totalDays = Math.ceil(endDate - startDate) / conversion;
-      const pastDays = Math.ceil(new Date() - startDate) / conversion;
-
-      const taskPercent = Math.round((pastDays / totalDays) * 100);
-      const validPercent = Math.min(taskPercent, 100);
-      row.taskPercent = validPercent;
-
-      return validPercent;
-    }
   },
   watch: {
     needSearching(newValue) {

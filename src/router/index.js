@@ -66,24 +66,28 @@ export const constantRoutes = [
     path: '',
     component: Layout,
     // redirect: 'noredirect',
-    redirect: 'index',
     children: [
       {
-        // path: 'quadrant',
         path: 'index',
         component: () => import('@/views/jobs/quadrant'),
-        name: 'Quadrant',
-        meta: { title: '今日任务', icon: 'dashboard', affix: true }
+        name: 'Index',
+        meta: { title: '今日任务', icon: 'dashboard', affix: true, noCache: true }
       }
-    ]
+    ],
+    meta: {
+      noCache: true
+    }
   },
   {
     path: '',
     component: Layout,
     redirect: 'noredirect',
+    meta: {
+      noCache: true
+    },
     children: [
       {
-        path: '/calendar',
+        path: 'calendar',
         component: () => import('@/views/jobs/calendarIndex'),
         name: 'Calendar',
         meta: { title: '任务列表', icon: 'time', affix: true }
@@ -94,12 +98,15 @@ export const constantRoutes = [
     path: '',
     component: Layout,
     redirect: 'noredirect',
+    meta: {
+      noCache: true
+    },
     children: [
       {
-        path: '/datacenter',
+        path: 'datacenter',
         component: () => import('@/views/jobs/dataCenter'),
         name: 'DataCenter',
-        meta: { title: '数据中心', icon: 'job', affix: true }
+        meta: { title: '数据中心', icon: 'job', affix: true, noCache: true }
       }
     ]
   },
@@ -109,12 +116,15 @@ export const constantRoutes = [
     component: Layout,
     // redirect: 'index',
     redirect: 'noredirect',
+    meta: {
+      noCache: true
+    },
     children: [
       {
         path: 'quadrant',
         component: () => import('@/views/index'),
-        name: 'Index',
-        meta: { title: '后台任务', icon: 'table', affix: true }
+        name: 'Quadrant',
+        meta: { title: '后台任务', icon: 'table', affix: true, noCache: true }
       }
     ]
   },

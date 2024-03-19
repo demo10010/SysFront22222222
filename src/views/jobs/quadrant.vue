@@ -39,8 +39,8 @@ export default {
       searching: false,
       departmentList: ['单位', '部门', '科室'],
       queryParams: {
+        moduleName: "今日任务",
         currentStatus: ['进行中'],
-        taskDurationTypeList: ['日任务'],
         deptLevel: []
       }, colorMap: {
         // 1: "#409eff",

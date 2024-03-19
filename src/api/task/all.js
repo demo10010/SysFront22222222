@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+export function picUpload(data) {
+	return request({
+		url: '/system/user/profile/picUpload',
+		method: 'post',
+		data
+	})
+}
+
 export function listTable(query) {
 	return request({
 		url: '/task/detail/list',

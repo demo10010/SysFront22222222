@@ -8,7 +8,9 @@
 import Calendar from '@/views/jobs/calendar';
 import JobDetail from '@/views/jobs/components/jobDetail';
 import { listTable } from "@/api/task/all";
-
+import {
+  formatDate
+} from "@/views/jobs/calendar/util";
 
 export default {
   components: { Calendar, JobDetail },
@@ -26,6 +28,7 @@ export default {
       events: [],
       calendarJobTypeMapping: {
         "multiMonthYear": '年任务',
+        "quarter": '季任务',
         "dayGridMonth": '月任务',
         "dayGridWeek": '周任务'
       }
@@ -34,8 +37,8 @@ export default {
   methods: {
     async dateChange(arg) {
       const { start, end, view } = arg;
-      this.dateRange = [this.formatDate(start), this.formatDate(end)];
-      this.queryParams.taskDurationTypeList = [this.calendarJobTypeMapping[view.type]];
+      this.dateRange = [formatDate(start, 'days'), formatDate(end, 'days')];
+      this.queryParams.taskDurationTypeList = [this.calendarJobTypeMapping[view]];
       this.getList();
     },
     async getList() {
@@ -45,8 +48,8 @@ export default {
         ...rest,
         page: 1,
         pageSize: 99999,
-        assignStartTime: params.beginTime,
-        assignEndTime: params.endTime,
+        intersectionalStartTime: params.beginTime,
+        intersectionalEndTime: params.endTime,
       });
       this.events = rows.map(item => ({
         id: item.id,
@@ -68,21 +71,11 @@ export default {
     showDetailCancel() {
       this.visible = false;
     },
-   
+
     async showDetail(event) {
       this.jobId = event.id;
       this.visible = true;
     },
-    formatDate(date) {
-      var year = date.getFullYear(); // 获取年份
-      var month = (1 + date.getMonth()).toString().padStart(2, '0'); // 获取月份并补零（如果小于10）
-      var day = date.getDate().toString().padStart(2, '0'); // 获取天数并补零（如果小于10）
-      var hours = date.getHours().toString().padStart(2, '0'); // 获取小时并补零（如果小于10）
-      var minutes = date.getMinutes().toString().padStart(2, '0'); // 获取分钟并补零（如果小于10）
-      var seconds = date.getSeconds().toString().padStart(2, '0'); // 获取秒数并补零（如果小于10）
-
-      return `${year}-${month}-${day}`; // 返回格式化后的字符串
-    }
   }
 }
 </script>

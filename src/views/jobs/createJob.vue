@@ -39,7 +39,8 @@
       <el-row>
         <el-col :span="10">
           <el-form-item label="显示层级" prop="jobLevel">
-            <el-select v-model="formData.jobLevel" placeholder="请选择显示层级" clearable :style="{ width: '100%' }">
+            <el-select v-model="formData.jobLevel" placeholder="请选择显示层级" clearable :style="{ width: '100%' }" :disabled="disabledLevel"
+              @change="handleSelectJonLevel">
               <el-option v-for="(item, index) in dict.type.task_show_level" :key="item.value" :label="item.label"
                 :value="item.value" :disabled="item.disabled"></el-option>
             </el-select>
@@ -47,13 +48,13 @@
         </el-col>
         <el-col :span="6">
           <el-form-item label="关注值" prop="jobLevelFocusValue" label-width="80px">
-            <el-input-number v-model="formData.jobLevelFocusValue" :min="1" :max="99"
-              :disabled="formData.jobLevel === '科室级'" style="width: 130px;"></el-input-number>
+            <el-input-number v-model="formData.jobLevelFocusValue" :min="0" :max="99" :disabled="disabledFocusValue"
+              style="width: 130px;"></el-input-number>
           </el-form-item>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="8" v-hasRole="['admin', 'deptLeader']">
           <el-form-item label="是否锁定" prop="jobLevelLock" label-width="120px">
-            <el-checkbox v-model="formData.jobLevelLock" :disabled="formData.jobLevel === '科室级'" />
+            <el-checkbox v-model="formData.jobLevelLock" :disabled="disabledLock" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -98,6 +99,7 @@ import StageCard from '@/views/jobs/components/stagecard';
 
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import auth from '@/plugins/auth';
 
 export default {
   components: { Treeselect, StageCard },
@@ -116,7 +118,7 @@ export default {
         jobType: undefined,
         jobInstitution: [],
         jobLevel: undefined,
-        jobLevelFocusValue: undefined,
+        jobLevelFocusValue: 0,
         jobLevelLock: false,
         jobStage: 0,
         stageList: [],
@@ -176,12 +178,32 @@ export default {
       responsibleOptions: [],
     }
   },
+  computed: {
+    disabledLevel: function () {
+      return (!auth.hasRoleOr(['admin', 'deptLeader']) && this.formData.jobLevelLock);
+    },
+    disabledLock: function () {
+      return (!auth.hasRoleOr(['admin', 'deptLeader']) && this.formData.jobLevelLock) ||
+        this.formData.jobLevel === "科室级" || !this.formData.jobLevel
+    },
+    disabledFocusValue: function () {
+      return (!auth.hasRoleOr(['admin', 'deptLeader']) && this.formData.jobLevelLock) ||
+        this.formData.jobLevel === "科室级" || !this.formData.jobLevel
+    }
+  },
   methods: {
     getTitle() {
       if (this.isDetail) return '查看任务';
       if (this.isEdit) return '编辑任务';
       return '创建任务';
     },
+    handleSelectJonLevel(arg) {
+      if (!this.isEdit && arg == '科室级') {
+        this.formData.jobLevelFocusValue = 0;
+        this.formData.jobLevelLock = false;
+      }
+    },
+
     handleJobInstitution() {
       this.formData.responsible = null;
     },
@@ -199,6 +221,7 @@ export default {
     },
     onClose() {
       this.resetForm("createJobForm");
+      this.formData.stageList = [];
       this.onCancel();
     },
     handleConfirm() {
