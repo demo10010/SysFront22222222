@@ -24,7 +24,7 @@
       </el-col>
       <el-col :span="12">
         <el-card :style="{ height: cardHeight + 'px' }" class="data-center-card-item">
-          <div slot="header"><span>已完成任务</span></div>
+          <div slot="header"><span>已完成任务</span>（<span>数量：{{ completeList.length }}</span>）</div>
           <el-table class="job-card-tb" v-loading="loading" :data="completeList" style="width: 100%;">
             <el-table-column label="序号" width="50" align="center" type="index" />
             <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
@@ -44,7 +44,7 @@
       </el-col>
       <el-col :span="12">
         <el-card :style="{ height: cardHeight + 'px' }" class="data-center-card-item">
-          <div slot="header"><span>逾期未完成任务</span></div>
+          <div slot="header"><span>逾期未完成任务</span>（<span>数量：{{ beforeList.length }}</span>）</div>
           <el-table class="job-card-tb" v-loading="loading" :data="beforeList" style="width: 100%;">
             <el-table-column label="序号" width="50" align="center" type="index" />
             <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
@@ -60,7 +60,7 @@
       </el-col>
       <el-col :span="12">
         <el-card :style="{ height: cardHeight + 'px' }" class="data-center-card-item">
-          <div slot="header"><span>进行中的任务</span></div>
+          <div slot="header"><span>进行中的任务</span>（<span>数量：{{ progressList.length }}</span>）</div>
           <el-table class="job-card-tb" v-loading="loading" :data="progressList" style="width: 100%;">
             <el-table-column label="序号" width="50" align="center" type="index" />
             <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true" />
@@ -85,7 +85,7 @@
 
   </div>
 </template>
-  
+
 <script>
 import * as echarts from "echarts";
 import { listTable } from "@/api/task/all";
@@ -128,7 +128,7 @@ export default {
     async getJobList() {
       this.loading = true;
       const { params, ...rest } = this.addDateRange(this.queryParams, this.dateRange);
-      const { rows } = await listTable({
+      const { rows, total } = await listTable({
         ...rest,
         page: 1,
         pageSize: 99999,
@@ -136,7 +136,7 @@ export default {
         assignEndTime: params.endTime,
       });
       this.loading = false;
-      return rows;
+      return { rows, total };
     },
     formatAndSetData(data) {
       if (!data) {
@@ -171,14 +171,24 @@ export default {
       ]
     },
     async getList() {
-      const res = await this.getJobList();
-      const data = this.formatAndSetData(res);
+      const { rows, total } = await this.getJobList();
+      const data = this.formatAndSetData(rows);
       this.commandstats = echarts.init(this.$refs.commandstats, "macarons");
       this.commandstats.setOption({
         tooltip: {
           trigger: 'item'
         },
-
+        graphic: {
+          type: 'text',
+          left: 'center',
+          top: 'center',
+          style: {
+            text: String(total || 0),
+            textAlign: 'center',
+            fill: '#000',
+            fontSize: 18
+          }
+        },
         series: [
           {
             type: 'pie',
@@ -263,4 +273,3 @@ export default {
   }
 }
 </style>
-  

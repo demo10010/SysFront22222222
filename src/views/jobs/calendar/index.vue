@@ -40,6 +40,7 @@ import {
   getPrevNextWeek,
   getPrevNextQuarter,
   getPrevNextYear,
+  getQuarter,
   getCenterTitle,
 } from "./util";
 
@@ -65,6 +66,7 @@ export default {
         return {
           locale: 'zh',
           allDaySlot: false,
+          firstDay: 1,
           plugins: [
             dayGridPlugin,
             timeGridPlugin,
@@ -126,8 +128,11 @@ export default {
         this.customViewEvent
       );
     },
-    getCurrentDateRange(range) {
+    getCurrentDateRange(view, range) {
       const { start, end: basicEnd } = range;
+      if (view === 'quarter') {
+        return { ...getQuarter(start) };
+      }
       const endDays = new Date(basicEnd).getDate();
       const newEndDate = new Date(basicEnd);
       const end = new Date(newEndDate.setDate(endDays - 1));
@@ -139,7 +144,7 @@ export default {
       const calendarApi = this.$refs.fullCalendar.getApi();
       const view = calendarApi.view.type;
       const range = calendarApi.currentData.dateProfile.currentRange;
-      this.dateChange({ view, ...this.getCurrentDateRange(range) });
+      this.dateChange({ view, ...this.getCurrentDateRange(view, range) });
     },
     toggleAction(arg) {
       this.selectAction = arg;

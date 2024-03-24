@@ -4,7 +4,6 @@ import { formatDate } from "./util";
 const QuarterViewPlugin = createPlugin({
   views: {
     quarter: {
-      buttonText: "qax",
       duration: { month: 3 },
       content: function (props, ...args) {
         let segs = sliceEvents(props, true);

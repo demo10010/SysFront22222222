@@ -3,6 +3,8 @@
   <el-card class="job-card" :class="classMap[currentType]" :body-style="{ padding: '1px' }">
     <el-tag style="margin-bottom: 4px;color: black;" :style="{ 'background-color': colorMap[currentType] }" type="info">{{
       currentLabel }}</el-tag>
+    (<span>数量:{{total}}</span>)
+    <!-- <span> {{total}}</span> -->
     <!-- <el-table class="job-card-tb" :stripe="true" v-loading="loading" :data="list" style="width: 100%;" :height="tableHeight"> -->
 
     <el-table class="job-card-tb" v-loading="loading" :data="list" style="width: 100%;"

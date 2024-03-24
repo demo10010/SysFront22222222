@@ -87,7 +87,7 @@
           <i class="el-icon-edit" @click="row.showProcessPercentageInput = true" v-if="!row.showProcessPercentageInput"
             style="cursor: pointer;"></i>
           <div v-if="row.showProcessPercentageInput" style="width: 150px;">
-            <el-input-number v-model="row.processPercentageInput" :min="1" :max="99" size="mini"
+            <el-input-number v-model="row.processPercentageInput" :min="1" :max="100" size="mini"
               style="width: 100px;display: inline-block;"></el-input-number>
             <i class="el-icon-check" @click="updateProcessPercentage(row)"
               style="cursor: pointer; width: 24px;height: 24px;font-size: 24px; margin-left: 6px;"></i>
